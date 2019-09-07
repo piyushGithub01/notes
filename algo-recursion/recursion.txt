@@ -1,0 +1,37 @@
+https://www.geeksforgeeks.org/recursion/
+https://www.geeksforgeeks.org/recursive-functions/
+https://www.geeksforgeeks.org/tail-recursion/
+https://www.geeksforgeeks.org/tail-call-elimination/
+
+
+https://practice.geeksforgeeks.org/tag-page.php?tag=recursion&isCmp=0
+https://www.geeksforgeeks.org/category/recursion/
+https://www.geeksforgeeks.org/recursion-practice-problems-solutions/
+https://www.geeksforgeeks.org/iterative-tower-of-hanoi/
+
+The process in which a function calls itself directly or indirectly is called recursion and the corresponding function is called as recursive function.
+
+In the recursive program, the solution to the base case is provided and the solution of the bigger problem is expressed in terms of smaller problems
+
+The idea is to represent a problem in terms of one or more smaller problems, and add one or more base conditions that stop the recursion. For example, we compute factorial n if we know factorial of (n-1). The base case for factorial would be n = 0. We return 1 when n = 0.
+
+
+A recursive function is tail recursive when recursive call is the last thing executed by the function
+The tail recursive functions considered better than non tail recursive functions as tail-recursion can be optimized by compiler. The idea used by compilers to optimize tail-recursive functions is simple, since the recursive call is the last statement, there is nothing left to do in the current function, so saving the current function’s stack frame is of no use 
+
+a non-tail recursive function be written as tail-recursive to optimize it
+The idea is to use one more argument and accumulate the factorial value in second argument. When n reaches 0, return the accumulated value.
+
+tail recursive is better than non-tail recursive as tail-recursion can be optimized by modern compilers. Modern compiler basically do tail call elimination to optimize the tail recursive code
+
+
+disadvantages of recursive programming over iterative programming
+The recursive program has greater space requirements than iterative program as all functions will remain in the stack until the base case is reached. 
+It also has greater time requirements because of function calls and returns overhead.
+
+
+advantages of recursive programming over iterative programming
+Recursion provides a clean and simple way to write code. Some problems are inherently recursive like tree traversals, Tower of Hanoi, etc. 
+For such problems, it is preferred to write recursive code. We can write such codes also iteratively with the help of a stack data structure.
+
+
