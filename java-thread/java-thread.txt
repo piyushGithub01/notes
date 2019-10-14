@@ -1,0 +1,77 @@
+Thread Dump - bunch of text represent runtine state of program at a particular point time. - snapshot of all the threads that are
+alive in jvm - collection of all call stacks of all threads tracked by jvm
+
+Call Stack - stack trace - composed of stack frames
+
+public static void main(String[] args) {
+	foo();
+}
+public void foo() {
+	bar();
+	buz();
+}
+public void bar() {}
+public void buz() {}
+
+3. bar		once bar is over ->			3. buz
+2. foo									2. foo
+1. main									1. main
+
+Structure of Thread Dump
+1. JVM Threads - some
+2. Application Threads - many
+3. Heap Report - one
+
+Thread dump structure differs by JVM implementation or platform
+
+Sample Application Thread
+
+"main"	#1	prio=5	os-prio=31	tid=0X0007f8bea802000	nid=0x1c03	waiting on condition 0x00070000d5fa000	
+java.lang.Thread.State: TIMED_WAITING (sleeping)
+	at java.lang.Thread.sleep (Native method)
+	   org.com....HelloWorld.sleep (HelloWorld.java:15)
+	   org.com....HelloWorld.main (HelloWorld.java:10)
+
+1. "main"	name of the thread
+2. #1		number of thread
+3. prio=5	JVM priority
+4. os-prio=31	OS priority
+5. tid=0X0007f8bea802000	thread address in memory
+6. nid=0x1c03	native id assigned by OS
+7. waiting on condition 0x00070000d5fa000		condition
+8. java.lang.Thread.State: TIMED_WAITING (sleeping)			thread state set by JVM
+9. at java.lang.Thread.sleep (Native method)				thread call stack
+	   org.com....HelloWorld.sleep (HelloWorld.java:15)
+	   org.com....HelloWorld.main (HelloWorld.java:10)
+
+
+
+	   
+Thread state ; 6 defined state in java.lang.Thread.state
+Runnable 	   
+Waiting
+Timed_Waiting
+Blocked
+New 
+Terminated
+	   
+
+Native method: using Java Native INterface JNI calls native method to work with OS resources / file system
+		at java.net.SocketInputStream.socketread(Native method)
+Low level delegation: java -> java native interface JNI -> c / c++ code
+
+Thread stagnation: Thread stack having very less and slow changes - stuck thread
+
+Starvation of connection pool: 
+top command to find high cpu and memory usage
+correlate thread native id to os pid and monitor for process and child threads
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   
+	   
