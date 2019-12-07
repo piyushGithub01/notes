@@ -1,0 +1,281 @@
+Identify the aspects of your
+application that vary and separate
+them from what stays the same
+
+take the parts
+that vary and encapsulate them, so that later you can
+alter or extend the parts that vary without affecting
+those that don’t.
+
+
+Program to an interface, not an
+implementation
+
+HAS-A can be better than IS-A
+
+Favor composition over inheritance
+
+creating systems using composition gives you
+a lot more flexibility. Not only does it let you encapsulate
+a family of algorithms into their own set of classes, but it
+also lets you change behavior at runtime as long as
+the object you’re composing with implements the correct
+behavior interface.
+
+
+The Strategy Pattern defines a family of algorithms,
+encapsulates each one, and makes them interchangeable.
+Strategy lets the algorithm vary independently from
+clients that use it.
+
+Object Oriented Principles - Abstraction Encapsulation Ploymorphism Inheritance
+
+The Observer Pattern defines a one-to-many
+dependency between objects so that when one
+object changes state, all of its dependents are
+notified and updated automatically.
+
+The subject and observers define the one-to-many relationship.
+The observers are dependent on the subject such that when the
+subject’s state changes, the observers get notified. Depending on
+the style of notification, the observer may also be updated with
+new values.
+
+
+When two objects are loosely coupled, they can interact,
+but have very little knowledge of each other.
+The Observer Pattern provides an object design where
+subjects and observers are loosely coupled.
+
+
+Strive for loosely coupled designs
+between objects that interact
+
+Loosely coupled designs allow us to build flexible OO
+systems that can handle change because they minimize
+the interdependency between objects.
+
+Classes should be open
+for extension, but closed for
+modifi cation.
+
+
+The decorator adds its own behavior either before and/or after delegating to the object it
+decorates to do the rest of the job.
+
+The Decorator Pattern attaches additional
+responsibilities to an object dynamically.
+Decorators provide a fl exible alternative to
+subclassing for extending functionality.
+
+
+
+
+The Factory Method Pattern defi nes an interface
+for creating an object, but lets subclasses decide which
+class to instantiate. Factory Method lets a class defer
+instantiation to subclasses.
+
+
+The Dependency Inversion Principle
+Depend upon abstractions. Do not
+depend upon concrete classes.
+
+
+An Abstract Factory gives
+us an interface for creating
+a family of products. By
+writing code that uses this
+interface, we decouple our
+code from the actual factory
+that creates the products.
+That allows us to implement
+a variety of factories that
+produce products meant for
+different contexts – such as
+different regions, different
+operating systems, or
+different look and feels.
+
+
+
+
+
+The Abstract Factory Pattern provides an interface
+for creating families of related or dependent objects
+without specifying their concrete classes.
+
+
+The Singleton Pattern ensures a class has only one
+instance, and provides a global point of access to it.
+
+
+The Command Pattern encapsulates a request as an
+object, thereby letting you parameterize other objects
+with different requests, queue or log requests, and support
+undoable operations.
+
+
+The Adapter Pattern converts the interface of a class
+into another interface the clients expect. Adapter lets
+classes work together that couldn’t otherwise because of
+incompatible interfaces.
+
+
+The Facade Pattern provides a unifi ed interface to a
+set of interfaces in a subsytem. Facade defi nes a higherlevel
+interface that makes the subsystem easier to use.
+
+
+Principle of Least Knowledge -
+talk only to your immediate friends.
+
+
+The Template Method defines the steps of an algorithm and allows
+subclasses to provide the implementation for one or more steps.
+
+The Template Method Pattern defi nes the skeleton
+of an algorithm in a method, deferring some steps to
+subclasses. Template Method lets subclasses redefi ne
+certain steps of an algorithm without changing the
+algorithm’s structure.
+
+
+The Hollywood Principle
+Don’t call us, we’ll call you.
+
+
+A class should have only one
+reason to change
+
+
+The State Pattern allows an object to alter its behavior
+when its internal state changes. The object will appear to
+change its class.
+
+
+The Proxy Pattern provides a surrogate or
+placeholder for another object to control access to it.
+
+
+
+
+Creational patterns involve
+object instantiation and all
+provide a way to decouple a client
+from the objects it needs to
+instantiate.
+Prototype
+Builder
+Singleton
+Abstract Factory
+Factory Method
+
+
+Behavioral
+Any pattern that is a Behavioral
+Pattern is concerned with how
+classes and objects interact and
+distribute responsibility.
+Template Method
+Mediator
+Visitor
+Iterator
+Command
+Interpreter
+Chain of Responsibility
+Observer
+Memento
+State
+Strategy
+
+
+Structural
+Structural patterns let you
+compose classes or objects
+into larger structures.
+Decorator
+Composite
+Flyweight
+Adapter
+Proxy
+Facade
+Bridge
+
+
+
+Wraps an object and provides a different		- Adapter
+interface to it.
+Subclasses decide how to implement steps in		- Template
+an algorithm.
+Subclasses decide which concrete classes to		- Factory Method
+create.
+Ensures one and only object is created.			- Singleton
+Encapsulates interchangeable behaviors and		- Strategy
+uses delegation to decide which one to use.
+Clients treat collections of objects and		- Composite
+individual objects uniformly.
+Encapsulates state-based behaviors and uses		- State
+delegation to switch between behaviors.
+Provides a way to traverse a collection of		- Iterator
+objects without exposing its implementation.
+Simplifies the interface of a set of classes.	- Facade
+Wraps an object to provide new behavior.		- Decorator
+Allows a client to create families of objects	- Abstract Factory
+without specifying their concrete classes.
+Allows objects to be notified when state	- Observer
+changes.
+Wraps an object to control access to it.	- Proxy
+Encapsulates a request as an object.	- Command
+
+
+
+Bridge
+Use the Bridge Pattern to vary not only your
+implementations, but also your abstractions.
+
+
+Builder
+Use the Builder Pattern to encapsulate the construction of
+a product and allow it to be constructed in steps.
+
+
+Chain of Responsibilit y
+Use the Chain of Responsibility Pattern when you want to
+give more than one object a chance to handle a request.
+
+
+Flyweight
+Use the Flyweight Pattern when one instance of a class
+can be used to provide many “virtual instances.”
+
+In te r pre te r
+Use the Interpreter Pattern to build an
+interpreter for a language.
+
+
+Mediator
+Use the Mediator Pattern to centralize complex
+communications and control between related objects.
+
+
+Memento
+Use the Memento Pattern when you need
+to be able to return an object to one of its
+previous states; for instance, if your user
+requests an “undo.”
+
+
+Protot ype
+Use the Prototype Pattern when creating an
+instance of a given class is either expensive or
+complicated.
+
+
+Visitor
+Use the Visitor Pattern when you want to
+add capabilities to a composite of objects
+and encapsulation is not important.
+
+
+

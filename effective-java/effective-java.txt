@@ -1,0 +1,61 @@
+A. Creating and Destroying Objects
+
+Item 1: Consider static factory methods instead of constructors
+A class can provide a public static factory method, which is simply a static method that returns an instance of the class.
+Providing a static factory method instead of a public constructor has both advantages and disadvantages -
+Advantages : 
+One advantage of static factory methods is that, unlike constructors, they have names.
+A second advantage of static factory methods is that, unlike constructors, they are not required to create a new object each time 
+they’re invoked. This allows immutable classes to use preconstructed instances, or to cache instances as they’re constructed, and dispense 
+them repeatedly to avoid creating unnecessary duplicate objects. This technique is similar to the Flyweight pattern. It can greatly improve
+performance if equivalent objects are requested often, especially if they are expensive to create.
+Classes that do this are said to be instance-controlled.
+A third advantage of static factory methods is that, unlike constructors, they can return an object of any subtype of their return type. 
+This gives you great flexibility in choosing the class of the returned object. One application of this flexibility is that an API can 
+return objects without making their classes public. Hiding implementation classes in this fashion leads to a very compact API. 
+This technique lends itself to interface-based frameworks, where interfaces provide natural return types for static factory methods.
+For example, the Java Collections Framework has forty-five utility implementations of its interfaces, providing unmodifiable collections,
+ synchronized collections, and the like. Nearly all of these implementations are exported via static factory methods in one noninstantiable
+ class (java.util.Collections). The classes of the returned objects are all nonpublic.
+A fourth advantage of static factories is that the class of the returned object can vary from call to call as a function of the 
+input parameters. Any subtype of the declared return type is permissible. The class of the returned object can also vary from 
+release to release.
+A fifth advantage of static factories is that the class of the returned object need not exist when the class containing the method is written.
+Such flexible static factory methods form the basis of service provider frameworks, like the Java Database Connectivity API (JDBC). 
+A service provider framework is a system in which providers implement a service, and the system makes the implementations available 
+to clients, decoupling the clients from the implementations.
+Limitations:
+The main limitation of providing only static factory methods is that classes without public or protected constructors cannot be subclassed.
+Arguably this can be a blessing in disguise because it encourages programmers to use composition instead of inheritance
+and is required for immutable types.
+A second shortcoming of static factory methods is that they are hard for programmers to find.
+Often static factories are preferable, so avoid the reflex to provide public constructors without first considering static factories.
+
+
+Item 2: Consider a builder when faced with many constructor parameters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
