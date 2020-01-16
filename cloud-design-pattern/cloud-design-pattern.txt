@@ -1,0 +1,246 @@
+Cache-aside
+Load data on demand into a cache from a data store. This pattern can improve performance and also helps to maintain consistency 
+between data held in the cache and the data in the underlying data store.
+
+
+Circuit Breaker
+Handle faults that may take a variable amount of time to rectify when connecting to a remote service or resource. 
+This pattern can improve the stability and resiliency of an application.
+
+The Circuit Breaker pattern can prevent an application repeatedly trying to execute an operation that is likely to fail, allowing it to 
+continue without waiting for the fault to be rectified or wasting CPU cycles while it determines that the fault is long lasting. The Circuit 
+Breaker pattern also enables an application to detect whether the fault has been resolved. If the problem appears to have been rectified, the 
+application can attempt to invoke the operation.
+
+The proxy can be implemented as a state machine with the following states that mimic the functionality of an electrical circuit breaker:
+• Closed: The request from the application is routed through to the operation. The proxy maintains a count of the number of recent failures, 
+and if the call to the operation is unsuccessful the proxy increments this count. If the number of recent failures exceeds a specified 
+threshold within a given time period, the proxy is placed into the Open state. At this point the proxy starts a timeout timer, and when this 
+timer expires the proxy is placed into the Half-Open state.
+
+• Open: The request from the application fails immediately and an exception is returned to the application.
+
+• Half-Open: A limited number of requests from the application are allowed to pass through and invoke the operation. If these requests are 
+successful, it is assumed that the fault that was previously causing the failure has been fixed and the circuit breaker switches to the 
+Closed state (the failure counter is reset). If any request fails, the circuit breaker assumes that the fault is still present so it reverts 
+back to the Open state and restarts the timeout timer to give the system a further period of time to recover from the failure.
+
+
+
+
+Compensating Transaction
+Undo the work performed by a series of steps, which together define an eventually consistent operation, if one or more of the operations fails.
+Operations that follow the eventual consistency model are commonly found in cloud-hosted applications that implement complex business 
+processes and workflows.
+
+
+
+Competing Consumers
+Enable multiple concurrent consumers to process messages received on the same messaging channel. This pattern enables a system to 
+process multiple messages concurrently to optimize throughput, to improve scalability and availability, and to balance the workload.
+
+
+
+Compute Resource Consolidation
+Consolidate multiple tasks or operations into a single computational unit. This pattern can increase compute resource utilization, 
+and reduce the costs and management overhead associated with performing compute processing in cloud-hosted applications.
+
+
+
+Command and Query Responsibility Segregation (CQRS)
+Segregate operations that read data from operations that update data
+by using separate interfaces. This pattern can maximize performance, scalability, and security; support evolution of the system 
+over time through higher flexibility; and prevent update commands from causing merge conflicts at the domain level.
+
+Command and Query Responsibility Segregation (CQRS) is a pattern that segregates the operations that read data (Queries) from the operations 
+that update data (Commands) by using separate interfaces. This implies that the data models used for querying and updates are different
+
+The query model for reading data and the update model for writing data may access the same physical store, perhaps by using SQL views or by 
+generating projections on the fly. However, it is common to separate the data into different physical stores to maximize performance, 
+scalability, and security
+
+The read store can be a read-only replica of the write store, or the read and write stores may have a different structure altogether. Using 
+multiple read-only replicas of the read store can considerably increase query performance and application UI responsiveness, especially in 
+distributed scenarios where read-only replicas are located close to the application instances. Some database systems, such as SQL Server, 
+provide additional features such as failover replicas to maximize availability.
+Separation of the read and write stores also allows each to be scaled appropriately to match the load. For example, read stores typically 
+encounter a much higher load that write stores.
+When the query/read model contains denormalized information (see Materialized View Pattern), performance is maximized when reading data for 
+each of the views in an application or when querying the data in the system.
+
+Event Sourcing and CQRS
+The CQRS pattern is often used in conjunction with the Event Sourcing pattern. CQRS-based systems use separate read and write data models, 
+each tailored to relevant tasks and often located in physically separate stores. When used with Event Sourcing, the store of events is the 
+write model, and this is the authoritative source of information. The read model of a CQRS-based system provides materialized views of the 
+data, typically as highly denormalized views. These views are tailored to the interfaces and display requirements of the application, which 
+helps to maximize both display and query performance.
+Using the stream of events as the write store, rather than the actual data at a point in time, avoids update conflicts on a single aggregate 
+and maximizes performance and scalability. The events can be used to asynchronously generate materialized views of the data that are used to 
+populate the read store.
+Because the event store is the authoritative source of information, it is possible to delete the materialized views and replay all past 
+events to create a new representation of the current state when the system evolves, or when the read model must change. The materialized 
+views are effectively a durable read-only cache of the data.
+
+
+
+
+
+
+
+
+
+
+Event Sourcing
+Use an append-only store to record the full series of events that describe actions taken on data in a domain, rather than storing just 
+the current state, so that the store can be used to materialize the domain objects. This pattern can simplify tasks in complex domains 
+by avoiding the requirement to synchronize the data model and the business domain; improve performance, scalability, and responsiveness;
+provide consistency for transactional data; and maintain full audit trails and history that may enable compensating actions.
+
+The Event Sourcing pattern defines an approach to handling operations on data that is driven by a sequence of events, each of which is 
+recorded in an append-only store. Application code sends a series of events that imperatively describe each action that has occurred on the 
+data to the event store, where they are persisted. Each event represents a set of changes to the data (such as AddedItemToOrder).
+The events are persisted in an event store that acts as the source of truth or system of record (the authoritative data source for a given 
+data element or piece of information) about the current state of the data. The event store typically publishes these events so that consumers 
+can be notified and can handle them if needed. Consumers could, for example, initiate tasks that apply the operations in the events to other 
+systems, or perform any other associated action that is required to complete the operation. Notice that the application code that generates 
+the events is decoupled from the systems that subscribe to the events.
+
+Typical uses of the events published by the event store are to maintain materialized views of entities as actions in the application change 
+them, and for integration with external systems. For example, a system may maintain a materialized view of all customer orders that is used 
+to populate parts of the UI. As the application adds new orders, adds or removes items on the order, and adds shipping information, the 
+events that describe these changes can be handled and used to update the materialized view.
+
+In addition, at any point in time it is possible for applications to read the history of events, and use it to materialize the current state 
+of an entity by effectively “playing back” and consuming all the events related to that entity. This may occur on demand in order to 
+materialize a domain object when handling a request, or through a scheduled task so that the state of the entity can be stored as a 
+materialized view to support the presentation layer.
+
+The system will only be eventually consistent when creating materialized views or generating projections of data by replaying events.
+The event store is the immutable source of information, and so the event data should never be updated. The only way to update an entity in 
+order to undo a change is to add a compensating event to the event store, much as you would use a negative transaction in accounting.
+The length of each event stream can have consequences on managing and updating the system. If the streams are large, consider creating 
+snapshots at specific intervals such as a specified number of events. The current state of the entity can be obtained from the snapshot and 
+by replaying any events that occurred after that point in time.
+
+
+
+
+
+External Configuration Store
+Move configuration information out of the application deployment package to a centralized location. This pattern can provide 
+opportunities for easier management and control of configuration data, and for sharing configuration data across applications and 
+application instances.
+
+
+Federated Identity
+Delegate authentication to an external identity provider. This pattern can simplify development, minimize the requirement for user 
+administration, and improve the user experience of the application.
+
+
+Gatekeeper
+Protect applications and services by using a dedicated host instance that acts as a broker between clients and the application or service, 
+validates and sanitizes requests, and passes requests and data between them. This pattern can provide an additional layer of security, and 
+limit the attack surface of the system.
+
+
+Health Endpoint Monitoring
+Implement functional checks within an application that external tools can access through exposed endpoints at regular intervals. This pattern 
+can help to verify that applications and services are performing correctly.
+
+
+Leader Election
+Coordinate the actions performed by a collection of collaborating task instances in a distributed application by electing one instance as the 
+leader that assumes responsibility for managing the other instances. This pattern can help to ensure that tasks do not conflict with each 
+other, cause contention for shared resources, or inadvertently interfere with the work that other task instances are performing.
+
+
+Materialized View
+Generate prepopulated views over the data in one or more data stores when the data is formatted in a way that does not favor the required 
+query operations. This pattern can help to support efficient querying
+and data extraction, and improve application performance.
+
+
+
+
+
+
+
+Pipes and Filters
+Decompose a task that performs complex processing into a series
+of discrete elements that can be reused. This pattern can improve performance, scalability, and reusability by allowing task elements that 
+perform the processing to be deployed and scaled independently.
+
+
+
+Priority Queue
+Prioritize requests sent to services so that requests with a higher priority are received and processed more quickly than those of a lower 
+priority. This pattern is useful in applications that offer different service level guarantees to individual types of client.
+
+
+Queue-based Load Leveling
+Use a queue that acts as a buffer between a task and a service that it invokes in order to smooth intermittent heavy loads that may otherwise 
+cause the service to fail or the task to timeout. This pattern can help to minimize the impact of peaks in demand on availability and 
+responsiveness for both the task and the service.
+
+
+Retry
+Enable an application to handle temporary failures when connecting to
+a service or network resource by transparently retrying the operation in the expectation that the failure is transient. This pattern can 
+improve the stability of the application.
+
+
+Runtime Reconfiguration
+Design an application so that it can be reconfigured without requiring redeployment or restarting the application. This helps to maintain 
+availability and minimize downtime.
+
+
+Scheduler Agent Supervisor
+Coordinate a set of actions across a distributed set of services and other remote resources, attempt to transparently handle faults if any of 
+these actions fail, or undo the effects of the work performed if the system cannot recover from a fault. This pattern can add resiliency to a 
+distributed system by enabling it to recover and retry actions that fail due to transient exceptions, long-lasting faults, and process 
+failures.
+
+
+Static Content Hosting
+Deploy static content to a cloud-based storage service that can deliver these directly to the client. This pattern can reduce the requirement 
+for potentially expensive compute instances.
+
+
+Throttling
+Control the consumption of resources used by an instance of an application, an individual tenant, or an entire service. This pattern
+can allow the system to continue to function and meet service level agreements, even when an increase in demand places an extreme load
+on resources.
+
+
+Valet Key
+Use a token or key that provides clients with restricted direct access
+to a specific resource or service in order to offload data transfer operations from the application code. This pattern is particularly useful 
+in applications that use cloud-hosted storage systems or queues, and can minimize cost and maximize scalability and performance.
+
+
+
+
+
+
+
+
+
+
+Asynchronous Messaging Primer
+Messaging is a key strategy employed in many distributed environments such as the cloud. It enables applications and services to communicate 
+and cooperate, and can help to build scalable and resilient solutions. Messaging supports asynchronous operations, enabling you to decouple a 
+process that consumes a service from the process that implements the service.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

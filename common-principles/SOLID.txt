@@ -1,6 +1,6 @@
 SOLID
 SRP – Single Responsibility Principle
-The Single Responsibility Principle (SRP) states that a class should have only one reason to  SingleResponsibilitychange.  It was first cited in this form by Robert C. Martin in an article that later formed a chapter in his Principles, Patterns, and Practices of Agile Software Development book.
+The Single Responsibility Principle (SRP) states that a class should have only one reason to change.  It was first cited in this form by Robert C. Martin in an article that later formed a chapter in his Principles, Patterns, and Practices of Agile Software Development book.
 The Single Responsibility Principle is closely related to the concepts of coupling and cohesion
 If a class has poor cohesion, some part of it may change that only certain depending classes utilize, while the rest of it may remain unchanged.  Nonetheless, classes that depend on the class must all be retested as a result of the change, increasing the total surface area of the application that is affected by the change.  If instead the class were broken up into several, highly cohesive classes, each would be used by fewer other elements of the system, and so a change to any one of them would have a lesser impact on the total system.
 

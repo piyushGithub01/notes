@@ -1,0 +1,60 @@
+HATEOAS (Hypermedia as the Engine of Application State) 
+
+
+REST architectural style lets you use hypermedia links in the response contents so that the client can dynamically navigate to the appropriate 
+resource by traversing the hypermedia links. Above is conceptually the same as a web user browsing through web pages by clicking the relevant 
+hyperlinks to achieve a final goal.
+
+
+A model (developed by Leonard Richardson) that breaks down the principal elements of a REST approach into three steps. These introduce 
+resources, http verbs, and hypermedia controls.
+
+
+Level 0
+The starting point for the model is using HTTP as a transport system for remote interactions, but without using any of the mechanisms of the 
+web. Essentially what you are doing here is using HTTP as a tunneling mechanism for your own remote interaction mechanism, usually based on 
+Remote Procedure Invocation.
+
+Level 1 - Resources
+The first step towards the Glory of Rest in the RMM is to introduce resources. So now rather than making all our requests to a singular 
+service endpoint, we now start talking to individual resources.
+
+Level 2 - HTTP Verbs
+using the HTTP verbs as closely as possible to how they are used in HTTP itself.
+
+HTTP defines GET as a safe operation, that is it doesn't make any significant changes to the state of anything. This allows us to invoke GETs 
+safely any number of times in any order and get the same results each time. An important consequence of this is that it allows any 
+participant in the routing of requests to use caching, which is a key element in making the web perform as well as it does. HTTP includes 
+various measures to support caching, which can be used by all participants in the communication. By following the rules of HTTP we're able to 
+take advantage of that capability.
+The trade-offs between using POST and PUT here are more than I want to go into here, maybe I'll do a separate article on them some day. But I 
+do want to point out that some people incorrectly make a correspondence between POST/PUT and create/update. The choice between them is rather 
+different to that.
+Even if I use the same post as level 1, there's another significant difference in how the remote service responds. If all goes well, the 
+service replies with a response code of 201 to indicate that there's a new resource in the world.
+The important part of this response is the use of an HTTP response code to indicate something has gone wrong. In this case a 409 seems a good 
+choice to indicate that someone else has already updated the resource in an incompatible way. Rather than using a return code of 200 but 
+including an error response, at level 2 we explicitly use some kind of error response like this. It's up to the protocol designer to decide 
+what codes to use, but there should be a non-2xx response if an error crops up. Level 2 introduces using HTTP verbs and HTTP response codes.
+
+Level 3 - Hypermedia Controls
+The final level introduces something that you often hear referred to under the ugly acronym of HATEOAS (Hypertext As The Engine Of 
+Application State). It addresses the question of how to get from a list open slots to knowing what to do to book an appointment.
+The point of hypermedia controls is that they tell us what we can do next, and the URI of the resource we need to manipulate to do it. Rather 
+than us having to know where to post our appointment request, the hypermedia controls in the response tell us how to do it.
+One obvious benefit of hypermedia controls is that it allows the server to change its URI scheme without breaking clients. As long as clients 
+look up the "addTest" link URI then the server team can juggle all URIs other than the initial entry points.
+A further benefit is that it helps client developers explore the protocol. The links give client developers a hint as to what may be possible 
+next. It doesn't give all the information: both the "self" and "cancel" controls point to the same URI - they need to figure out that one is 
+a GET and the other a DELETE. But at least it gives them a starting point as to what to think about for more information and to look for a 
+similar URI in the protocol documentation.
+Similarly it allows the server team to advertise new capabilities by putting new links in the responses. If the client developers are keeping 
+an eye out for unknown links these links can be a trigger for further exploration.
+
+
+Level 1 tackles the question of handling complexity by using divide and conquer, breaking a large service endpoint down into multiple 
+resources.
+Level 2 introduces a standard set of verbs so that we handle similar situations in the same way, removing unnecessary variation.
+Level 3 introduces discoverability, providing a way of making a protocol more self-documenting.
+
+

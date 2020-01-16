@@ -1,0 +1,755 @@
+
+
+Operating systems evolved to allow more than one program to run at once,
+running individual programs in processes: isolated, independently executing programs
+to which the operating system allocates resources such as memory, file
+handles, and security credentials. If they needed to, processes could communicate
+with one another through a variety of coarse-grained communication mechanisms:
+sockets, signal handlers, shared memory, semaphores, and files.
+
+
+Threads allow multiple streams of program control flow to coexist within a process.
+They share process-wide resources such as memory and file handles, but
+each thread has its own program counter, stack, and local variables. Threads also
+provide a natural decomposition for exploiting hardware parallelism on multiprocessor
+systems; multiple threads within the same program can be scheduled
+simultaneously on multiple CPUs.
+
+
+Threads are sometimes called lightweight processes, and most modern operating
+systems treat threads, not processes, as the basic units of scheduling. In
+the absence of explicit coordination, threads execute simultaneously and asynchronously
+with respect to one another. Since threads share the memory address
+space of their owning process, all threads within a process have access to the same
+variables and allocate objects from the same heap, which allows finer-grained data
+sharing than inter-process mechanisms. But without explicit synchronization to
+coordinate access to shared data, a thread may modify variables that another
+thread is in the middle of using, with unpredictable results.
+
+
+@NotThreadSafe
+public class UnsafeSequence {
+private int value;
+/** Returns a unique value. */
+public int getNext() {
+return value++;
+}
+}
+The problem with UnsafeSequence is that with some unlucky timing, two
+threads could call getNext and receive the same value. Figure 1.1 shows how this
+can happen. The increment notation, someVariable++, may appear to be a single
+operation, but is in fact three separate operations: read the value, add one to
+it, and write out the new value. Since operations in multiple threads may be
+arbitrarily interleaved by the runtime, it is possible for two threads to read the
+value at the same time, both see the same value, and then both add one to it.
+The result is that the same sequence number is returned from multiple calls in
+different threads.
+
+
+For a multithreaded program’s behavior
+to be predictable, access to shared variables must be properly coordinated so that
+threads do not interfere with one another. Fortunately, Java provides synchronization
+mechanisms to coordinate such access.
+
+@ThreadSafe
+public class Sequence {
+@GuardedBy("this") private int value;
+public synchronized int getNext() {
+return value++;
+}
+}
+
+UnsafeSequence can be fixed by making getNext a synchronized method, as
+shown in Sequence in Listing 1.2,3 thus preventing the unfortunate interaction
+
+In the absence of synchronization, the compiler, hardware, and runtime are
+allowed to take substantial liberties with the timing and ordering of actions, such
+as caching variables in registers or processor-local caches where they are temporarily
+(or even permanently) invisible to other threads. These tricks are in aid
+of better performance and are generally desirable, but they place a burden on the
+developer to clearly identify where data is being shared across threads so that
+these optimizations do not undermine safety
+
+
+Liveness hazards
+While safety means “nothing bad ever happens”, liveness concerns the complementary
+goal that “something good eventually happens”. A liveness failure
+occurs when an activity gets into a state such that it is permanently unable to
+make forward progress. One form of liveness failure that can occur in sequential
+programs is an inadvertent infinite loop, where the code that follows the loop
+never gets executed. The use of threads introduces additional liveness risks. For
+example, if thread A is waiting for a resource that thread B holds exclusively, and
+B never releases it, A will wait forever.
+
+Performance hazards
+In well designed concurrent applications the use of threads is a net performance
+gain, but threads nevertheless carry some degree of runtime overhead.
+Context switches—when the scheduler suspends the active thread temporarily so
+another thread can run—are more frequent in applications with many threads,
+and have significant costs: saving and restoring execution context, loss of locality,
+and CPU time spent scheduling threads instead of running them. When
+threads share data, they must use synchronization mechanisms that can inhibit
+compiler optimizations, flush or invalidate memory caches, and create synchronization
+traffic on the shared memory bus.
+
+
+Every Java application uses threads. When the JVM starts, it creates threads
+for JVM housekeeping tasks (garbage collection, finalization) and a main thread
+for running the main method. The AWT (Abstract Window Toolkit) and Swing
+user interface frameworks create threads for managing user interface events. Timer
+creates threads for executing deferred tasks. Component frameworks, such as
+servlets and RMI create pools of threads and invoke component methods in these
+threads.
+
+
+Timer. Timer is a convenience mechanism for scheduling tasks to run at a later
+time, either once or periodically. The introduction of a Timer can complicate
+an otherwise sequential program, because TimerTasks are executed in a thread
+managed by the Timer, not the application. If a TimerTask accesses data that is
+also accessed by other application threads, then not only must the TimerTask do
+so in a thread-safe manner, but so must any other classes that access that data. Often
+the easiest way to achieve this is to ensure that objects accessed by the Timer-
+Task are themselves thread-safe, thus encapsulating the thread safety within the
+shared objects.
+
+
+Servlets and JavaServer Pages (JSPs). The servlets framework is designed to
+handle all the infrastructure of deploying a web application and dispatching requests
+from remote HTTP clients. A request arriving at the server is dispatched,
+perhaps through a chain of filters, to the appropriate servlet or JSP. Each servlet
+represents a component of application logic, and in high-volume web sites, multiple
+clients may require the services of the same servlet at once. The servlets
+specification requires that a servlet be prepared to be called simultaneously from
+multiple threads. In other words, servlets need to be thread-safe.
+Even if you could guarantee that a servlet was only called from one thread
+at a time, you would still have to pay attention to thread safety when building
+a web application. Servlets often access state information shared with other
+servlets, such as application-scoped objects (those stored in the ServletContext)
+or session-scoped objects (those stored in the per-client HttpSession). When a
+servlet accesses objects shared across servlets or requests, it must coordinate access
+to these objects properly, since multiple requests could be accessing them
+simultaneously from separate threads. Servlets and JSPs, as well as servlet filters
+and objects stored in scoped containers like ServletContext and HttpSession,
+simply have to be thread-safe.
+
+
+
+
+
+Thread Safety
+
+Whenever more than one thread accesses a given state variable, and one of them might
+write to it, they all must coordinate their access to it using synchronization. The primary
+mechanism for synchronization in Java is the synchronized keyword, which provides
+exclusive locking, but the term “synchronization” also includes the use of
+volatile variables, explicit locks, and atomic variables.
+
+When designing thread-safe classes, good object-oriented techniques—
+encapsulation, immutability, and clear specification of invariants—are
+your best friends.
+
+
+A class is thread-safe if it behaves correctly when accessed from multiple
+threads, regardless of the scheduling or interleaving of the execution of
+those threads by the runtime environment, and with no additional synchronization
+or other coordination on the part of the calling code.
+
+If an object is correctly implemented, no sequence of operations—calls to public
+methods and reads or writes of public fields—should be able to violate any of
+its invariants or postconditions. No set of operations performed sequentially or concurrently
+on instances of a thread-safe class can cause an instance to be in an invalid
+state.
+
+Thread-safe classes encapsulate any needed synchronization so that
+clients need not provide their own.
+
+Example: a stateless servlet
+It unpacks the number to
+be factored from the servlet request, factors it, and packages the results into the
+servlet response.
+
+@ThreadSafe
+public class StatelessFactorizer implements Servlet {
+public void service(ServletRequest req, ServletResponse resp) {
+BigInteger i = extractFromRequest(req);
+BigInteger[] factors = factor(i);
+encodeIntoResponse(resp, factors);
+}
+}
+
+
+StatelessFactorizer is, like most servlets, stateless: it has no fields and references
+no fields from other classes. The transient state for a particular computation
+exists solely in local variables that are stored on the thread’s stack and are accessible
+only to the executing thread. One thread accessing a StatelessFactorizer
+cannot influence the result of another thread accessing the same StatelessFactorizer;
+because the two threads do not share state, it is as if they were accessing
+different instances. Since the actions of a thread accessing a stateless object cannot
+affect the correctness of operations in other threads, stateless objects are threadsafe.
+
+Stateless objects are always thread-safe.
+
+
+hit counter
+
+@NotThreadSafe
+public class UnsafeCountingFactorizer implements Servlet {
+private long count = 0;
+public long getCount() { return count; }
+public void service(ServletRequest req, ServletResponse resp) {
+BigInteger i = extractFromRequest(req);
+BigInteger[] factors = factor(i);
+++count;
+encodeIntoResponse(resp, factors);
+}
+}
+
+While the increment operation, ++count,
+may look like a single action because of its compact syntax, it is not atomic, which
+means that it does not execute as a single, indivisible operation. Instead, it is a
+shorthand for a sequence of three discrete operations: fetch the current value, add
+one to it, and write the new value back. This is an example of a read-modify-write
+operation, in which the resulting state is derived from the previous state.
+
+
+Race conditions
+UnsafeCountingFactorizer has several race conditions that make its results unreliable.
+A race condition occurs when the correctness of a computation depends
+on the relative timing or interleaving of multiple threads by the runtime; in other
+words, when getting the right answer relies on lucky timing.4 The most common
+type of race condition is check-then-act, where a potentially stale observation is
+used to make a decision on what to do next.
+
+Example: race conditions in lazy initialization
+A common idiom that uses check-then-act is lazy initialization. The goal of lazy
+initialization is to defer initializing an object until it is actually needed while at
+the same time ensuring that it is initialized only once.
+
+@NotThreadSafe
+public class LazyInitRace {
+private ExpensiveObject instance = null;
+public ExpensiveObject getInstance() {
+if (instance == null)
+instance = new ExpensiveObject();
+return instance;
+}
+}
+
+The getInstance method first checks
+whether the ExpensiveObject has already been initialized, in which case it returns
+the existing instance; otherwise it creates a new instance and returns it after
+retaining a reference to it so that future invocations can avoid the more expensive
+code path.
+
+LazyInitRace has race conditions that can undermine its correctness. Say that
+threads A and B execute getInstance at the same time. A sees that instance
+is null, and instantiates a new ExpensiveObject. B also checks if instance is
+null. Whether instance is null at this point depends unpredictably on timing,
+including the vagaries of scheduling and how long A takes to instantiate the ExpensiveObject
+and set the instance field. If instance is null when B examines
+it, the two callers to getInstance may receive two different results, even though
+getInstance is always supposed to return the same instance.
+The hit-counting operation in UnsafeCountingFactorizer has another sort of
+race condition. Read-modify-write operations, like incrementing a counter, define
+a transformation of an object’s state in terms of its previous state. To increment a
+counter, you have to know its previous value and make sure no one else changes
+or uses that value while you are in mid-update.
+
+Like most concurrency errors, race conditions don’t always result in failure:
+some unlucky timing is also required.
+
+
+
+Compound actions
+
+Operations A and B are atomic with respect to each other if, from the
+perspective of a thread executing A, when another thread executes B,
+either all of B has executed or none of it has. An atomic operation is one
+that is atomic with respect to all operations, including itself, that operate
+on the same state
+
+To ensure thread safety, check-then-act operations (like lazy initialization)
+and read-modify-write operations (like increment) must always be atomic.
+
+@ThreadSafe
+public class CountingFactorizer implements Servlet {
+private final AtomicLong count = new AtomicLong(0);
+public long getCount() { return count.get(); }
+public void service(ServletRequest req, ServletResponse resp) {
+BigInteger i = extractFromRequest(req);
+BigInteger[] factors = factor(i);
+count.incrementAndGet();
+encodeIntoResponse(resp, factors);
+}
+}
+
+
+The java.util.concurrent.atomic package contains atomic variable classes
+for effecting atomic state transitions on numbers and object references. By replacing
+the long counter with an AtomicLong, we ensure that all actions that access
+the counter state are atomic.5 Because the state of the servlet is the state of the
+counter and the counter is thread-safe, our servlet is once again thread-safe.
+
+Where practical, use existing thread-safe objects, like AtomicLong, to
+manage your class’s state. It is simpler to reason about the possible
+states and state transitions for existing thread-safe objects than it is for
+arbitrary state variables, and this makes it easier to maintain and verify
+thread safety.
+
+
+
+Locking
+
+Imagine that we want to improve the performance of our servlet by caching
+the most recently computed result, just in case two consecutive clients request
+factorization of the same number.
+To implement this strategy, we need
+to remember two things: the last number factored, and its factors.
+We used AtomicLong to manage the counter state in a thread-safe manner;
+could we perhaps use its cousin, AtomicReference,6 to manage the last number
+and its factors?
+
+
+Servlet that attempts to cache its last result without adequate atomicity.
+Don’t do this
+
+@NotThreadSafe
+public class UnsafeCachingFactorizer implements Servlet {
+private final AtomicReference<BigInteger> lastNumber
+= new AtomicReference<BigInteger>();
+private final AtomicReference<BigInteger[]> lastFactors
+= new AtomicReference<BigInteger[]>();
+public void service(ServletRequest req, ServletResponse resp) {
+BigInteger i = extractFromRequest(req);
+if (i.equals(lastNumber.get()))
+encodeIntoResponse(resp, lastFactors.get());
+else {
+BigInteger[] factors = factor(i);
+lastNumber.set(i);
+lastFactors.set(factors);
+encodeIntoResponse(resp, factors);
+}
+}
+}
+
+Unfortunately, this approach does not work. Even though the atomic references
+are individually thread-safe, UnsafeCachingFactorizer has race conditions
+that could make it produce the wrong answer.
+
+The definition of thread safety requires that invariants be preserved regardless
+of timing or interleaving of operations in multiple threads. One invariant of UnsafeCachingFactorizer
+is that the product of the factors cached in lastFactors
+equal the value cached in lastNumber; our servlet is correct only if this invariant
+always holds. When multiple variables participate in an invariant, they are not
+independent: the value of one constrains the allowed value(s) of the others. Thus
+when updating one, you must update the others in the same atomic operation.
+
+With some unlucky timing, UnsafeCachingFactorizer can violate this invariant.
+Using atomic references, we cannot update both lastNumber and lastFactors
+simultaneously, even though each call to set is atomic; there is still a window
+of vulnerability when one has been modified and the other has not, and
+during that time other threads could see that the invariant does not hold. Similarly,
+the two values cannot be fetched simultaneously: between the time when
+thread A fetches the two values, thread B could have changed them, and again A
+may observe that the invariant does not hold.
+
+To preserve state consistency, update related state variables in a single
+atomic operation.
+
+
+
+Intrinsic locks
+Java provides a built-in locking mechanism for enforcing atomicity: the synchronized
+block.
+
+A synchronized
+block has two parts: a reference to an object that will serve as the lock, and a
+block of code to be guarded by that lock.
+A synchronized method is a shorthand
+for a synchronized block that spans an entire method body, and whose lock is
+the object on which the method is being invoked.
+Static synchronized methods
+use the Class object for the lock
+
+synchronized (lock) {
+// Access or modify shared state guarded by lock
+}
+
+
+Every Java object can implicitly act as a lock for purposes of synchronization;
+these built-in locks are called intrinsic locks or monitor locks. The lock is automatically
+acquired by the executing thread before entering a synchronized block
+and automatically released when control exits the synchronized block, whether
+by the normal control path or by throwing an exception out of the block. The
+only way to acquire an intrinsic lock is to enter a synchronized block or method
+guarded by that lock.
+
+Intrinsic locks in Java act as mutexes (or mutual exclusion locks), which means
+that at most one thread may own the lock. When thread A attempts to acquire a
+lock held by thread B, A must wait, or block, until B releases it. If B never releases
+the lock, A waits forever.
+
+@ThreadSafe
+public class SynchronizedFactorizer implements Servlet {
+@GuardedBy("this") private BigInteger lastNumber;
+@GuardedBy("this") private BigInteger[] lastFactors;
+public synchronized void service(ServletRequest req,
+ServletResponse resp) {
+BigInteger i = extractFromRequest(req);
+if (i.equals(lastNumber))
+encodeIntoResponse(resp, lastFactors);
+else {
+BigInteger[] factors = factor(i);
+lastNumber = i;
+lastFactors = factors;
+encodeIntoResponse(resp, factors);
+}
+}
+}
+
+SynchronizedFactorizer is now
+thread-safe; however, this approach is fairly extreme, since it inhibits multiple
+clients from using the factoring servlet simultaneously at all—resulting in unacceptably
+poor responsiveness.
+
+
+
+Reentrancy
+When a thread requests a lock that is already held by another thread, the requesting
+thread blocks. But because intrinsic locks are reentrant, if a thread tries
+to acquire a lock that it already holds, the request succeeds.
+
+Reentrancy
+is implemented by associating with each lock an acquisition count and an
+owning thread. When the count is zero, the lock is considered unheld. When a
+thread acquires a previously unheld lock, the JVM records the owner and sets the
+acquisition count to one. If that same thread acquires the lock again, the count
+is incremented, and when the owning thread exits the synchronized block, the
+count is decremented. When the count reaches zero, the lock is released.
+
+
+public class Widget {
+public synchronized void doSomething() {
+...
+}
+}
+public class LoggingWidget extends Widget {
+public synchronized void doSomething() {
+System.out.println(toString() + ": calling doSomething");
+super.doSomething();
+}
+}
+the doSomething methods in Widget and LoggingWidget are both synchronized,
+each tries to acquire the lock on the Widget before proceeding. But if intrinsic
+locks were not reentrant, the call to super.doSomething would never be able to
+acquire the lock because it would be considered already held, and the thread
+would permanently stall waiting for a lock it can never acquire. Reentrancy saves
+us from deadlock in situations like this.
+
+
+
+Guarding state with locks
+Compound actions on shared state, such as incrementing a hit counter (readmodify-
+write) or lazy initialization (check-then-act), must be made atomic to
+avoid race conditions. Holding a lock for the entire duration of a compound action
+can make that compound action atomic. However, just wrapping the compound
+action with a synchronized block is not sufficient; if synchronization is used to
+coordinate access to a variable, it is needed everywhere that variable is accessed. Further,
+when using locks to coordinate access to a variable, the same lock must be
+used wherever that variable is accessed.
+
+It is a common mistake to assume that synchronization needs to be used only
+when writing to shared variables; this is simply not true.
+
+For each mutable state variable that may be accessed by more than one
+thread, all accesses to that variable must be performed with the same
+lock held. In this case, we say that the variable is guarded by that lock.
+
+Acquiring the
+lock associated with an object does not prevent other threads from accessing that
+object—the only thing that acquiring a lock prevents any other thread from doing
+is acquiring that same lock.
+
+Every shared, mutable variable should be guarded by exactly one lock.
+Make it clear to maintainers which lock that is.
+
+For every invariant that involves more than one variable, all the variables
+involved in that invariant must be guarded by the same lock.
+
+if (!vector.contains(element))
+vector.add(element);
+This attempt at a put-if-absent operation has a race condition, even though
+both contains and add are atomic.
+
+While synchronized methods can make individual
+operations atomic, additional locking is required when multiple operations
+are combined into a compound action.
+
+At the same
+time, synchronizing every method can lead to liveness or performance problems
+
+
+
+
+Liveness and performance
+Because service is synchronized, only one thread may execute it at once.
+This subverts the intended use of the servlet framework—that servlets be able to
+handle multiple requests simultaneously—and can result in frustrated users if the
+load is high enough. If the servlet is busy factoring a large number, other clients
+have to wait until the current request is complete before the servlet can start on
+the new number. If the system has multiple CPUs, processors may remain idle
+even if the load is high. In any case, even short-running requests, such as those
+for which the value is cached, may take an unexpectedly long time because they
+must wait for previous long-running requests to complete.
+
+
+Servlet that caches its last request and result
+@ThreadSafe
+public class CachedFactorizer implements Servlet {
+@GuardedBy("this") private BigInteger lastNumber;
+@GuardedBy("this") private BigInteger[] lastFactors;
+@GuardedBy("this") private long hits;
+@GuardedBy("this") private long cacheHits;
+public synchronized long getHits() { return hits; }
+public synchronized double getCacheHitRatio() {
+return (double) cacheHits / (double) hits;
+}
+public void service(ServletRequest req, ServletResponse resp) {
+BigInteger i = extractFromRequest(req);
+BigInteger[] factors = null;
+synchronized (this) {
+++hits;
+if (i.equals(lastNumber)) {
+++cacheHits;
+factors = lastFactors.clone();
+}
+}
+if (factors == null) {
+factors = factor(i);
+synchronized (this) {
+lastNumber = i;
+lastFactors = factors.clone();
+}
+}
+encodeIntoResponse(resp, factors);
+}
+}
+
+There is frequently a tension between simplicity and performance. When
+implementing a synchronization policy, resist the temptation to prematurely
+sacrifice simplicity (potentially compromising safety) for the sake
+of performance.
+
+Avoid holding locks during lengthy computations or operations at risk of
+not completing quickly such as network or console I/O.
+
+
+
+
+Chapter 3
+Sharing Objects
+
+Visibility
+Visibility is subtle because the things that can go wrong are so counterintuitive.
+In a single-threaded environment, if you write a value to a variable and later read
+that variable with no intervening writes, you can expect to get the same value
+back. This seems only natural. It may be hard to accept at first, but when the
+reads and writes occur in different threads, this is simply not the case. In general,
+there is no guarantee that the reading thread will see a value written by another
+thread on a timely basis, or even at all. In order to ensure visibility of memory
+writes across threads, you must use synchronization.
+
+
+Sharing variables without synchronization. Don’t do this.
+public class NoVisibility {
+private static boolean ready;
+private static int number;
+private static class ReaderThread extends Thread {
+public void run() {
+while (!ready)
+Thread.yield();
+System.out.println(number);
+}
+}
+public static void main(String[] args) {
+new ReaderThread().start();
+number = 42;
+ready = true;
+}
+}
+
+NoVisibility in Listing 3.1 illustrates what can go wrong when threads share
+data without synchronization. Two threads, the main thread and the reader
+thread, access the shared variables ready and number. The main thread starts
+the reader thread and then sets number to 42 and ready to true. The reader
+thread spins until it sees ready is true, and then prints out number. While it may
+seem obvious that NoVisibility will print 42, it is in fact possible that it will
+print zero, or never terminate at all! Because it does not use adequate synchronization,
+there is no guarantee that the values of ready and number written by the
+main thread will be visible to the reader thread.
+
+
+NoVisibility could loop forever because the value of ready might never become
+visible to the reader thread. Even more strangely, NoVisibility could print
+zero because the write to ready might be made visible to the reader thread before
+the write to number, a phenomenon known as reordering. There is no guarantee
+that operations in one thread will be performed in the order given by the program,
+as long as the reordering is not detectable from within that thread—even
+if the reordering is apparent to other threads.1 When the main thread writes first to
+number and then to ready without synchronization, the reader thread could see
+those writes happen in the opposite order—or not at all.
+
+always use the proper synchronization whenever
+data is shared across threads.
+
+
+Stale data
+
+NoVisibility demonstrated one of the ways that insufficiently synchronized programs
+can cause surprising results: stale data. When the reader thread examines
+ready, it may see an out-of-date value. Unless synchronization is used every time
+a variable is accessed, it is possible to see a stale value for that variable. Worse, staleness
+is not all-or-nothing: a thread can see an up-to-date value of one variable
+but a stale value of another variable that was written first.
+
+Non-thread-safe mutable integer holder
+@NotThreadSafe
+public class MutableInteger {
+private int value;
+public int get() { return value; }
+public void set(int value) { this.value = value; }
+}
+
+Thread-safe mutable integer holder
+@ThreadSafe
+public class SynchronizedInteger {
+@GuardedBy("this") private int value;
+public synchronized int get() { return value; }
+public synchronized void set(int value) { this.value = value; }
+}
+
+MutableInteger in Listing 3.2 is not thread-safe because the value field is
+accessed from both get and set without synchronization. Among other hazards,
+it is susceptible to stale values: if one thread calls set, other threads calling get
+may or may not see that update.
+We can make MutableInteger thread safe by synchronizing the getter and
+setter as shown in SynchronizedInteger in Listing 3.3. Synchronizing only the
+setter would not be sufficient: threads calling get would still be able to see stale
+values.
+
+
+
+
+Nonatomic 64-bit operations
+When a thread reads a variable without synchronization, it may see a stale value,
+but at least it sees a value that was actually placed there by some thread rather
+than some random value. This safety guarantee is called out-of-thin-air safety.
+Out-of-thin-air safety applies to all variables, with one exception: 64-bit numeric
+variables (double and long) that are not declared volatile (see Section
+3.1.4). The Java Memory Model requires fetch and store operations to be atomic,
+but for nonvolatile long and double variables, the JVM is permitted to treat a
+64-bit read or write as two separate 32-bit operations. If the reads and writes
+occur in different threads, it is therefore possible to read a nonvolatile long and
+get back the high 32 bits of one value and the low 32 bits of another.3 Thus, even
+if you don’t care about stale values, it is not safe to use shared mutable long and
+double variables in multithreaded programs unless they are declared volatile
+or guarded by a lock.
+
+
+
+Locking and visibility
+Locking is not just about mutual exclusion; it is also about memory visibility.
+To ensure that all threads see the most up-to-date values of shared
+mutable variables, the reading and writing threads must synchronize on
+a common lock.
+
+
+
+Volatile variables
+The Java language also provides an alternative, weaker form of synchronization,
+volatile variables, to ensure that updates to a variable are propagated predictably
+to other threads. When a field is declared volatile, the compiler and runtime
+are put on notice that this variable is shared and that operations on it should not
+be reordered with other memory operations. Volatile variables are not cached in
+registers or in caches where they are hidden from other processors, so a read of a
+volatile variable always returns the most recent write by any thread.
+
+
+Yet accessing a
+volatile variable performs no locking and so cannot cause the executing thread
+to block, making volatile variables a lighter-weight synchronization mechanism
+than synchronized
+
+The visibility effects of volatile variables extend beyond the value of the
+volatile variable itself. When thread A writes to a volatile variable and subsequently
+thread B reads that same variable, the values of all variables that were
+visible to A prior to writing to the volatile variable become visible to B after
+reading the volatile variable. So from a memory visibility perspective, writing
+a volatile variable is like exiting a synchronized block and reading a volatile
+variable is like entering a synchronized block. However, we do not recommend
+relying too heavily on volatile variables for visibility; code that relies on volatile
+variables for visibility of arbitrary state is more fragile and harder to understand
+than code that uses locking.
+
+
+Use volatile variables only when they simplify implementing and verifying
+your synchronization policy; avoid using volatile variables when
+veryfing correctness would require subtle reasoning about visibility. Good
+uses of volatile variables include ensuring the visibility of their own
+state, that of the object they refer to, or indicating that an important lifecycle
+event (such as initialization or shutdown) has occurred.
+
+Counting sheep
+volatile boolean asleep;
+...
+while (!asleep)
+countSomeSheep();
+
+a typical use of volatile variables: checking a status flag
+to determine when to exit a loop. In this example, our anthropomorphized thread
+is trying to get to sleep by the time-honored method of counting sheep. For this
+example to work, the asleep flag must be volatile. Otherwise, the thread might
+not notice when asleep has been set by another thread.6 We could instead have
+used locking to ensure visibility of changes to asleep, but that would have made
+the code more cumbersome.
+
+
+Locking can guarantee both visibility and atomicity; volatile variables can
+only guarantee visibility
+
+You can use volatile variables only when all the following criteria are met:
+• Writes to the variable do not depend on its current value, or you can ensure
+that only a single thread ever updates the value;
+• The variable does not participate in invariants with other state variables;
+and
+• Locking is not required for any other reason while the variable is being
+accessed.
+
+
+
+Publication and escape
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

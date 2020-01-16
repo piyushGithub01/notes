@@ -1,0 +1,54 @@
+The paper that introduced the idea (Consistent Hashing and Random Trees: Distributed Caching Protocols for Relieving Hot Spots on the World Wide Web by David Karger et al) appeared ten years ago
+
+
+general hashing logic in dikstributed system:
+1. Generate a hash of the key from the incoming data :  " hashValue = HashFunction(Key)"
+2. Figure out the server to send the data to by taking the modulo ("%") of the hashValue using the number of current db servers, n : "serverIndex = hashValue % n"
+
+The simplest way is to take the hash modulo of the number of servers. That is, server = hash(key) mod N, where N is the size of the pool. To 
+store or retrieve a key, the client first computes the hash, applies a modulo N operation, and uses the resulting index to contact the 
+appropriate server (probably by using a lookup table of IP addresses). 
+
+as soon new node added, n changes, this causes lots of data rehashing.
+
+
+Consistent Hashing is a distributed hashing scheme that operates independently of the number of servers or objects in a distributed hash 
+table by assigning them a position on an abstract circle, or hash ring. This allows servers and objects to scale without affecting the 
+overall system.
+
+It is possible to have a very non-uniform distribution of objects between caches. The solution to this problem is to introduce the idea of 
+"virtual nodes", which are replicas of cache points in the circle.
+
+In general, only k/N keys need to be remapped when k is the number of keys and N is the number of servers (more specifically, the maximum of 
+the initial and final number of servers). Not 100% of the data needs to be rehashed.
+
+
+
+
+The need for consistent hashing arose from limitations experienced while running collections of caching machines - web caches, for example. 
+If you have a collection of n cache machines then a common way of load balancing across them is to put object o in cache machine number 
+hash(o) mod n. This works well until you add or remove cache machines (for whatever reason), for then n changes and every object is hashed to 
+a new location. This can be catastrophic since the originating content servers are swamped with requests from the cache machines. It's as if 
+the cache suddenly disappeared. Which it has, in a sense. (This is why you should care - consistent hashing is needed to avoid swamping your 
+servers!)
+
+It would be nice if, when a cache machine was added, it took its fair share of objects from all the other cache machines. Equally, when a 
+cache machine was removed, it would be nice if its objects were shared between the remaining machines. This is exactly what consistent 
+hashing does - consistently maps objects to the same cache machine, as far as is possible, at least.
+
+The basic idea behind the consistent hashing algorithm is to hash both objects and caches using the same hash function. The reason to do this 
+is to map the cache to an interval, which will contain a number of object hashes. If the cache is removed then its interval is taken over by 
+a cache with an adjacent interval. All the other caches remain unchanged.
+
+this allows servers and objects to scale without affecting the overall system.
+consitent hashing enables a pretty linear increase in capacity as you add more needs to a cluster.
+
+Adding / removing cache server will result in all of sudden cache misses or reloading data to cache from DB servers, swamping DB servers
+with lot of request as if cache never existed.
+Adding / removing DB servers in a DB cluster will result in migrating data to other DB servers, migration of data may need some downtime,
+though read only replicas can be created to serve read request but write request will be down.
+
+
+https://www.acodersjourney.com/system-design-interview-consistent-hashing/			-- code implementation
+http://tom-e-white.com/2007/11/consistent-hashing.html
+https://medium.com/@dgryski/consistent-hashing-algorithmic-tradeoffs-ef6b8e2fcae8			-- algorithms for consitent hashing

@@ -57,7 +57,7 @@ the interdependency between objects.
 
 Classes should be open
 for extension, but closed for
-modifi cation.
+modification.
 
 
 The decorator adds its own behavior either before and/or after delegating to the object it
@@ -65,13 +65,13 @@ decorates to do the rest of the job.
 
 The Decorator Pattern attaches additional
 responsibilities to an object dynamically.
-Decorators provide a fl exible alternative to
+Decorators provide a flexible alternative to
 subclassing for extending functionality.
 
 
 
 
-The Factory Method Pattern defi nes an interface
+The Factory Method Pattern defines an interface
 for creating an object, but lets subclasses decide which
 class to instantiate. Factory Method lets a class defer
 instantiation to subclasses.
@@ -122,8 +122,8 @@ classes work together that couldn’t otherwise because of
 incompatible interfaces.
 
 
-The Facade Pattern provides a unifi ed interface to a
-set of interfaces in a subsytem. Facade defi nes a higherlevel
+The Facade Pattern provides a unified interface to a
+set of interfaces in a subsytem. Facade defines a higher level
 interface that makes the subsystem easier to use.
 
 
@@ -134,9 +134,9 @@ talk only to your immediate friends.
 The Template Method defines the steps of an algorithm and allows
 subclasses to provide the implementation for one or more steps.
 
-The Template Method Pattern defi nes the skeleton
+The Template Method Pattern defines the skeleton
 of an algorithm in a method, deferring some steps to
-subclasses. Template Method lets subclasses redefi ne
+subclasses. Template Method lets subclasses redefine
 certain steps of an algorithm without changing the
 algorithm’s structure.
 
@@ -206,26 +206,39 @@ Bridge
 
 Wraps an object and provides a different		- Adapter
 interface to it.
+
 Subclasses decide how to implement steps in		- Template
 an algorithm.
+
 Subclasses decide which concrete classes to		- Factory Method
 create.
+
 Ensures one and only object is created.			- Singleton
+
 Encapsulates interchangeable behaviors and		- Strategy
 uses delegation to decide which one to use.
+
 Clients treat collections of objects and		- Composite
 individual objects uniformly.
+
 Encapsulates state-based behaviors and uses		- State
 delegation to switch between behaviors.
+
 Provides a way to traverse a collection of		- Iterator
 objects without exposing its implementation.
+
 Simplifies the interface of a set of classes.	- Facade
+
 Wraps an object to provide new behavior.		- Decorator
+
 Allows a client to create families of objects	- Abstract Factory
 without specifying their concrete classes.
+
 Allows objects to be notified when state	- Observer
 changes.
+
 Wraps an object to control access to it.	- Proxy
+
 Encapsulates a request as an object.	- Command
 
 
@@ -240,7 +253,7 @@ Use the Builder Pattern to encapsulate the construction of
 a product and allow it to be constructed in steps.
 
 
-Chain of Responsibilit y
+Chain of Responsibility
 Use the Chain of Responsibility Pattern when you want to
 give more than one object a chance to handle a request.
 
@@ -249,7 +262,7 @@ Flyweight
 Use the Flyweight Pattern when one instance of a class
 can be used to provide many “virtual instances.”
 
-In te r pre te r
+Interpreter
 Use the Interpreter Pattern to build an
 interpreter for a language.
 
@@ -266,7 +279,7 @@ previous states; for instance, if your user
 requests an “undo.”
 
 
-Protot ype
+Prototype
 Use the Prototype Pattern when creating an
 instance of a given class is either expensive or
 complicated.
