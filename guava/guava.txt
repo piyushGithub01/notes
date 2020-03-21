@@ -1,0 +1,1691 @@
+https://www.baeldung.com/guava-lists
+
+--create a list
+List<String> names = Lists.newArrayList("John", "Adam", "Jane");
+
+--reverse a list
+List<String> names = Lists.newArrayList("John", "Adam", "Jane");
+List<String> reversed = Lists.reverse(names);
+
+--character from a word
+List<Character> chars = Lists.charactersOf("John");
+
+--partition a list
+List<String> names = Lists.newArrayList("John","Jane","Adam","Tom","Viki","Tyler");
+List<List<String>> result = Lists.partition(names, 2);
+
+--remove duplicate from list
+List<Character> chars = Lists.newArrayList('h','e','l','l','o');
+List<Character> result = ImmutableSet.copyOf(chars).asList();
+
+--remove null from list
+List<String> names = Lists.newArrayList("John", null, "Adam", null, "Jane");
+Iterables.removeIf(names, Predicates.isNull());
+
+--make immutable list
+List<String> names = Lists.newArrayList("John", "Adam", "Jane");
+ImmutableList<String> immutable = ImmutableList.copyOf(names);
+
+https://www.baeldung.com/guava-filter-and-transform-a-collection
+
+--filtering a list
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Iterable<String> result = Iterables.filter(names, Predicates.containsPattern("a"));
+
+--filtering a list using Collections API
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<String> result = Collections2.filter(names, Predicates.containsPattern("a"));
+output of Collections.filter() is a live view of the original collection – changes to one will be reflected in the other.
+also important to understand that now, the result is constrained by the predicate – if we add an element that doesn't satisfy that Predicate, 
+an IllegalArgumentException will be thrown:
+result.add("elvis");
+
+
+--custom predicate
+Predicate<String> predicate = new Predicate<String>() {
+        @Override
+        public boolean apply(String input) {
+            return input.startsWith("A") || input.startsWith("J");
+        }
+    };
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<String> result = Collections2.filter(names, predicate);
+
+
+--combine multiple predicates
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<String> result = Collections2.filter(names, 
+      Predicates.or(Predicates.containsPattern("J"), 
+      Predicates.not(Predicates.containsPattern("a"))));
+
+
+--remove null
+List<String> names = Lists.newArrayList("John", null, "Jane", null, "Adam", "Tom");
+Collection<String> result = Collections2.filter(names, Predicates.notNull());	  
+
+
+--check if all elements in collection match a condition
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+boolean result = Iterables.all(names, Predicates.containsPattern("n|m"));  //result is true
+result = Iterables.all(names, Predicates.containsPattern("a"));   //result is false
+
+
+--transform a collection
+Function<String, Integer> function = new Function<String, Integer>() {
+        @Override
+        public Integer apply(String input) {
+            return input.length();
+        }
+    };
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Iterable<Integer> result = Iterables.transform(names, function);
+
+
+--transform a collection using Collections API
+Function<String,Integer> func = new Function<String,Integer>(){
+        @Override
+        public Integer apply(String input) {
+            return input.length();
+        }
+    };
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<Integer> result = Collections2.transform(names, func);
+output of Collections.transform() is a live view of the original Collection – changes to one affect the other.
+result.remove(3);		//size of names will reduce by 1
+if we try to add an element to the output Collection, an UnsupportedOperationException will be thrown.
+
+
+--create a function from predicate
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<Boolean> result =
+      Collections2.transform(names,
+      Functions.forPredicate(Predicates.containsPattern("m")));
+a function that transforms the inputs to Boolean, according to the condition of the predicate
+
+
+--compose two function
+Function<String,Integer> f1 = new Function<String,Integer>(){
+        @Override
+        public Integer apply(String input) {
+            return input.length();
+        }
+    };
+Function<Integer,Boolean> f2 = new Function<Integer,Boolean>(){
+        @Override
+        public Boolean apply(Integer input) {
+            return input % 2 == 0;
+        }
+    };
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<Boolean> result = 
+      Collections2.transform(names, Functions.compose(f2, f1));
+//result size is 4, contains true, true, true, false
+Functions.compose() returns the Composition of Two Functions as it applies the second Function on the output of the first Function.
+the first Function transform the name into its length, then the second Function transforms the length to a boolean value which represents if 
+the name's length is even
+
+
+--chaining filter and transform using FluentIterable
+Predicate<String> predicate = new Predicate<String>() {
+        @Override
+        public boolean apply(String input) {
+            return input.startsWith("A") || input.startsWith("T");
+        }
+    };
+Function<String, Integer> func = new Function<String,Integer>(){
+        @Override
+        public Integer apply(String input) {
+            return input.length();
+        }
+    };
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+Collection<Integer> result = FluentIterable.from(names)
+                                               .filter(predicate)
+                                               .transform(func)
+                                               .toList();
+//result size is 2, contains 4 and 3
+
+
+https://www.baeldung.com/guava-joiner-and-splitter-tutorial
+
+--convert list to string using joiner
+List<String> names = Lists.newArrayList("John", "Jane", "Adam", "Tom");
+String result = Joiner.on(",").join(names);    //result = John,Jane,Adam,Tom
+
+--map to string using joiner
+Map<String, Integer> salary = Maps.newHashMap();
+salary.put("John", 1000);
+salary.put("Jane", 1500);
+String result = Joiner.on(" , ").withKeyValueSeparator(" = ")
+                                    .join(salary);
+//result = John = 1000 , Jane = 1500
+
+
+--join nested collection into string
+List<ArrayList<String>> nested = Lists.newArrayList(
+      Lists.newArrayList("apple", "banana", "orange"),
+      Lists.newArrayList("cat", "dog", "bird"),
+      Lists.newArrayList("John", "Jane", "Adam"));
+String result = Joiner.on(";").join(Iterables.transform(nested,
+      new Function<List<String>, String>() {
+          @Override
+          public String apply(List<String> input) {
+              return Joiner.on("-").join(input);
+          }
+      }));
+//result = apple-banana-orange;cat-dog-bird;apple-banana-orange
+
+
+--skip null using joiner
+List<String> names = Lists.newArrayList("John", null, "Jane", "Adam", "Tom");
+String result = Joiner.on(",").skipNulls().join(names);
+//result = John,Jane,Adam,Tom
+
+--replace null using joiner
+List<String> names = Lists.newArrayList("John", null, "Jane", "Adam", "Tom");
+String result = Joiner.on(",").useForNull("nameless").join(names);
+//result = John,nameless,Jane,Adam,Tom
+useForNull() doesn't change the original list, it only affect the output of the join
+
+
+--create list from string using splitter
+String input = "apple - banana - orange";
+List<String> result = Splitter.on("-").trimResults()
+                                          .splitToList(input);
+
+--create a mpa using splitter
+String input = "John=first,Adam=second";
+Map<String, String> result = Splitter.on(",")
+                                         .withKeyValueSeparator("=")
+                                         .split(input);
+
+--split string with multiple separators
+String input = "apple.banana,,orange,,.";
+List<String> result = Splitter.onPattern("[.,]")
+                                  .omitEmptyStrings()
+                                  .splitToList(input);
+
+
+--split a string at specific length
+String input = "Hello world";
+List<String> result = Splitter.fixedLength(3).splitToList(input);
+//result = "Hel", "lo ", "wor", "ld"
+
+
+--limit the split result
+String input = "a,b,c,d,e";
+List<String> result = Splitter.on(",")
+                                  .limit(4)
+                                  .splitToList(input);
+//result = "a", "b", "c", "d,e"
+
+
+
+https://www.baeldung.com/guava-sets
+
+--creating new hashset
+Set<String> aNewSet = Sets.newHashSet();
+
+
+--union of sets
+Set<Character> first = ImmutableSet.of('a', 'b', 'c');
+Set<Character> second = ImmutableSet.of('b', 'c', 'd');
+Set<Character> union = Sets.union(first, second);
+//union 'a', 'b', 'c', 'd'
+
+
+--catesian product of sets
+Set<Character> first = ImmutableSet.of('a', 'b');
+Set<Character> second = ImmutableSet.of('c', 'd');
+Set<List<Character>> result =
+      Sets.cartesianProduct(ImmutableList.of(first, second));
+//result list 1 "a c", "a d" list 2 "b c", "b d"
+
+
+--intersection of sets
+Set<Character> first = ImmutableSet.of('a', 'b', 'c');
+Set<Character> second = ImmutableSet.of('b', 'c', 'd');
+Set<Character> intersection = Sets.intersection(first, second);
+//intersection 'b', 'c'
+
+
+--symmetric difference of set - either in set 1 or in set 2 but not in both
+Set<Character> first = ImmutableSet.of('a', 'b', 'c');
+Set<Character> second = ImmutableSet.of('b', 'c', 'd');
+Set<Character> intersection = Sets.symmetricDifference(first, second); 
+//intersection 'a', 'd'
+
+
+--power set - the set of all possible subsets of that set
+Set<Character> chars = ImmutableSet.of('a', 'b');
+Set<Set<Character>> result = Sets.powerSet(chars);
+//result will have all the below sets
+Set<Character> empty =  ImmutableSet.<Character> builder().build();
+Set<Character> a = ImmutableSet.of('a');
+Set<Character> b = ImmutableSet.of('b');
+Set<Character> aB = ImmutableSet.of('a', 'b');
+
+
+--contiguous set 
+int start = 10;
+int end = 30;
+ContiguousSet<Integer> set = ContiguousSet.create(
+      Range.closed(start, end), DiscreteDomain.integers());
+//set size 21, starts with 10 ends with 30
+
+
+--range set
+RangeSet<Integer> rangeSet = TreeRangeSet.create();
+rangeSet.add(Range.closed(1, 10));
+rangeSet.add(Range.closed(12, 15));
+//rangeSet.asRanges().size() = 2
+rangeSet.add(Range.closed(10, 12));
+//rangeSet.encloses(Range.closed(1, 15)) = true
+//rangeSet.asRanges().size() = 1
+First – we insert the 2 disconnected ranges: [1, 10] and [12, 15]
+Next – we add a third range to connect the existing 2: [10, 12]
+Finally – we verify that the RangeSet was smart enough to see that the 3 ranges are now one large range, and merge them together into: [1, 15]
+--intersects
+assertTrue(rangeSet.intersects(Range.closed(4, 14)));
+assertFalse(rangeSet.intersects(Range.closed(19, 200)));
+--range span
+Range<Integer> experienceSpan = rangeSet.span();
+assertEquals(1, experienceSpan.lowerEndpoint().intValue());
+assertEquals(15, experienceSpan.upperEndpoint().intValue());
+--subrange
+RangeSet<Integer> numberSubRangeSet 
+      = rangeSet.subRangeSet(Range.closed(4, 14));
+assertFalse(rangeSet.contains(3));
+assertFalse(rangeSet.contains(14));
+assertTrue(rangeSet.contains(7));
+--range complement -- get all the values except the one present in RangeSet
+RangeSet<Integer> numberRangeComplementSet
+      = rangeSet.complement();
+assertTrue(numberRangeComplementSet.contains(-1000));
+assertFalse(numberRangeComplementSet.contains(2));
+assertFalse(numberRangeComplementSet.contains(3));
+assertTrue(numberRangeComplementSet.contains(1000));
+--remove range
+rangeSet.remove(Range.closed(3, 5));
+rangeSet.remove(Range.closed(7, 10));
+assertTrue(rangeSet.contains(1));
+assertFalse(rangeSet.contains(9));
+assertTrue(rangeSet.contains(12));
+
+
+--multiset
+Multiset<String> names = HashMultiset.create();
+names.add("John");
+names.add("Adam", 3);
+names.add("John");
+//names.count("John") = 2
+names.remove("John");
+//names.count("John") = 1
+//names.count("Adam") = 3
+names.remove("Adam", 2);
+//names.count("Adam") = 1	
+As opposed to normal sets, a Multiset does support adding duplicate elements – which it counts as occurrences.
+
+
+--top N elements in multiset
+Multiset<String> names = HashMultiset.create();
+names.add("John");
+names.add("Adam", 5);
+names.add("Jane");
+names.add("Tom", 2);
+Set<String> sorted = Multisets.copyHighestCountFirst(names).elementSet();
+List<String> sortedAsList = Lists.newArrayList(sorted);
+assertEquals("Adam", sortedAsList.get(0));
+assertEquals("Tom", sortedAsList.get(1));
+
+
+Multiset<String> bookStore = HashMultiset.create();
+-add
+bookStore.add("Potter");
+bookStore.add("Potter");
+bookStore.add("Potter");
+assertThat(bookStore.contains("Potter")).isTrue();
+assertThat(bookStore.count("Potter")).isEqualTo(3);
+--remove
+bookStore.remove("Potter");
+assertThat(bookStore.contains("Potter")).isTrue();
+assertThat(bookStore.count("Potter")).isEqualTo(2);
+--set count
+bookStore.setCount("Potter", 50); 
+assertThat(bookStore.count("Potter")).isEqualTo(50);
+--
+Multiset validates the count value. If we set it to negative, an IllegalArgumentException is thrown:
+assertThatThrownBy(() -> bookStore.setCount("Potter", -1))
+  .isInstanceOf(IllegalArgumentException.class);
+
+--Concurrency
+//When we want to use Multiset in a concurrent environment, we can use ConcurrentHashMultiset, which is a thread-safe Multiset implementation
+//We should note that being thread-safe does not guarantee consistency, though. Using the add or remove methods will work well in a multi-threaded environment, but what if several threads called the setCount method? 
+//If we use the setCount method, the final result would depend on the order of execution across threads, which cannot necessarily be predicted. The add and remove methods are incremental, and the ConcurrentHashMultiset is able to protect their behavior. Setting the count directly is not incremental and so can cause unexpected results when used concurrently.
+//However, there's another flavor of the setCount method which updates the count only if its current value matches the passed argument. The method returns true if the operation succeeded, a form of optimistic locking
+
+Multiset<String> bookStore = HashMultiset.create();
+// updates the count to 2 if current count is 0
+assertThat(bookStore.setCount("Potter", 0, 2)).isTrue();
+// updates the count to 5 if the current value is 50
+assertThat(bookStore.setCount("Potter", 50, 5)).isFalse();
+
+
+
+
+
+https://www.baeldung.com/guava-maps
+
+--create new hashmap
+Map<String, String> aNewMap = Maps.newHashMap();
+
+--immutable hashmap
+Map<String, Integer> salary = ImmutableMap.<String, Integer> builder()
+      .put("John", 1000)
+      .put("Jane", 1500)
+      .put("Adam", 2000)
+      .put("Tom", 2000)
+      .build();
+	  
+--sorted map
+ImmutableSortedMap<String, Integer> salary = new ImmutableSortedMap
+      .Builder<String, Integer>(Ordering.natural())
+      .put("John", 1000)
+      .put("Jane", 1500)
+      .put("Adam", 2000)
+      .put("Tom", 2000)
+      .build();
+assertEquals("Adam", salary.firstKey());
+assertEquals(2000, salary.lastEntry().getValue().intValue());
+
+--BiMap //use BiMap to map keys back to values as it makes sure the values are unique.
+BiMap<String, Integer> words = HashBiMap.create();
+words.put("First", 1);
+words.put("Second", 2);
+words.put("Third", 3);
+assertEquals(2, words.get("Second").intValue());
+assertEquals("Third", words.inverse().get(3));
+
+
+--MultiMap //use Multimap to associate each key with multiple values
+Multimap<String, String> multimap = ArrayListMultimap.create();
+multimap.put("fruit", "apple");
+multimap.put("fruit", "banana");
+multimap.put("pet", "cat");
+multimap.put("pet", "dog");
+assertThat(multimap.get("fruit"), containsInAnyOrder("apple", "banana"));
+assertThat(multimap.get("pet"), containsInAnyOrder("cat", "dog"));
+
+
+--table //use Table if we need more than one key to index a value.
+Table<String,String,Integer> distance = HashBasedTable.create();
+distance.put("London", "Paris", 340);
+distance.put("New York", "Los Angeles", 3940);
+distance.put("London", "New York", 5576);
+assertEquals(3940, distance.get("New York", "Los Angeles").intValue());
+assertThat(distance.columnKeySet(), 
+      containsInAnyOrder("Paris", "New York", "Los Angeles"));
+assertThat(distance.rowKeySet(), containsInAnyOrder("London", "New York"));
+
+
+--use Tables.transpose() to flip the row and column keys
+Table<String,String,Integer> distance = HashBasedTable.create();
+distance.put("London", "Paris", 340);
+distance.put("New York", "Los Angeles", 3940);
+distance.put("London", "New York", 5576);
+Table<String, String, Integer> transposed = Tables.transpose(distance);
+assertThat(transposed.rowKeySet(), 
+      containsInAnyOrder("Paris", "New York", "Los Angeles"));
+assertThat(transposed.columnKeySet(), containsInAnyOrder("London", "New York"));
+
+
+--ClassToInstanceMap //se ClassToInstanceMap if we want the object's class to be the key
+ClassToInstanceMap<Number> numbers = MutableClassToInstanceMap.create();
+numbers.putInstance(Integer.class, 1);
+numbers.putInstance(Double.class, 1.5);
+assertEquals(1, numbers.get(Integer.class));
+assertEquals(1.5, numbers.get(Double.class));
+
+
+--using the of(Class<T> type, T value) method to create a single entry map
+ImmutableClassToInstanceMap.of(Save.class, new Save());
+
+--using copyOf() method which accepts another map as a parameter. It will create a map with the same entries as map provided as the parameter
+ImmutableClassToInstanceMap.copyOf(someMap)
+
+--using the builder
+ImmutableClassToInstanceMap.<Action>builder()
+  .put(Save.class, new Save())
+  .put(Open.class, new Open())
+  .put(Delete.class, new Delete())
+  .build();
+  
+  
+--mutable - using the create() method which makes an instance backed by HashMap
+MutableClassToInstanceMap.create();
+
+--using the create(Map<Class<? extends B>, B> backingMap) which makes an instance backed by the provided empty map
+MutableClassToInstanceMap.create(new HashMap());
+
+Action newOpen = map.put(Open.class, new Open());
+Delete newDelete = map.putInstance(Delete.class, new Delete());
+Action openAction = map.get(Open.class);
+Delete deleteAction = map.getInstance(Delete.class);
+
+
+
+
+--group list using multimap  //group a List of names by their length using Multimaps.index()
+List<String> names = Lists.newArrayList("John", "Adam", "Tom");
+Function<String,Integer> func = new Function<String,Integer>(){
+        public Integer apply(String input) {
+            return input.length();
+        }
+    };
+Multimap<Integer, String> groups = Multimaps.index(names, func);
+assertThat(groups.get(3), containsInAnyOrder("Tom"));
+assertThat(groups.get(4), containsInAnyOrder("John", "Adam"));
+
+--range map
+RangeMap<Integer, String> experienceRangeDesignationMap
+  = TreeRangeMap.create();
+  
+--immutable rangemap
+RangeMap<Integer, String> experienceRangeDesignationMap
+  = new ImmutableRangeMap.<Integer, String>builder()
+  .put(Range.closed(0, 2), "Associate")
+  .build();
+  
+RangeMap<Integer, String> experienceRangeDesignationMap 
+     = TreeRangeMap.create();
+experienceRangeDesignationMap.put(
+      Range.closed(0, 2), "Associate");
+experienceRangeDesignationMap.put(
+      Range.closed(3, 5), "Senior Associate");
+experienceRangeDesignationMap.put(
+      Range.closed(6, 8),  "Vice President");
+experienceRangeDesignationMap.put(
+      Range.closed(9, 15), "Executive Director");
+experienceRangeDesignationMap.put(Range.closed(16, 30), "Managing Director");
+assertEquals("Vice President", 
+      experienceRangeDesignationMap.get(6));
+assertEquals("Executive Director", 
+      experienceRangeDesignationMap.get(15));
+--getting entry
+assertEquals(Range.closed(9, 15), experienceEntry.getKey());
+assertEquals("Executive Director", experienceEntry.getValue());
+--range span
+Range<Integer> experienceSpan = experienceRangeDesignationMap.span();
+assertEquals(0, experienceSpan.lowerEndpoint().intValue());
+assertEquals(30, experienceSpan.upperEndpoint().intValue());
+--subrangemap
+RangeMap<Integer, String> experiencedSubRangeDesignationMap
+      = experienceRangeDesignationMap.subRangeMap(Range.closed(4, 14));
+assertNull(experiencedSubRangeDesignationMap.get(3));
+assertTrue(experiencedSubRangeDesignationMap.asMapOfRanges().values()
+      .containsAll(Arrays.asList("Executive Director", "Vice President", "Executive Director")));
+--remove
+experienceRangeDesignationMap.remove(Range.closed(9, 15));
+experienceRangeDesignationMap.remove(Range.closed(1, 4));
+   
+assertNull(experienceRangeDesignationMap.get(9));
+assertEquals("Associate", 
+      experienceRangeDesignationMap.get(0));
+assertEquals("Senior Associate", 
+      experienceRangeDesignationMap.get(5));
+assertNull(experienceRangeDesignationMap.get(1));
+
+
+--AtomicLongMap
+//In concurrent scenarios, standard HashMap might not really work well, as it's simply not concurrent. In this particular scenario, AtomicLongMap bails you out by storing Long values in a thread-safe way
+
+accumulateAndGet()
+//accumulateAndGet() method updates the value linked with the key by merging it up with existing value using the accumulator function. Then, it returns the updated value
+long noOfStudents = 56;
+long oldValue = courses.get(SPRING_COURSE_KEY);
+long totalNotesRequired = courses.accumulateAndGet(
+      "Guava", 
+      noOfStudents, 
+      (x, y) -> (x * y));
+assertEquals(totalNotesRequired, oldValue * noOfStudents);
+
+getAndAccumulate()
+//This method has the similar functionality as defined above but, it returns the old value instead of the updated value( as the order of operations in the same suggests)
+
+updateAndGet()
+//updateAndGet() method updates current value of the key using the specified function provided as the second parameter. Then, it returns updated value of the key
+long beforeUpdate = courses.get(SPRING_COURSE_KEY);
+long onUpdate = courses.updateAndGet(
+      "Guava",
+      (x) -> (x / 2));
+long afterUpdate = courses.get(SPRING_COURSE_KEY);
+assertEquals(onUpdate, afterUpdate);
+assertEquals(afterUpdate, beforeUpdate / 2);
+
+getAndUpdate()
+//This method works very similar as updateAndGet() but, it returns the old value of the key rather than updated one
+
+
+
+--table
+Using the create method from the class HashBasedTable which uses LinkedHashMap internally
+Table<String, String, Integer> universityCourseSeatTable 
+  = HashBasedTable.create();
+
+If we need a Table whose row keys and the column keys need to be ordered by their natural ordering or by supplying comparators, 
+you can create an instance of a Table using the create method from a class called TreeBasedTable, which uses TreeMap internally
+Table<String, String, Integer> universityCourseSeatTable
+  = TreeBasedTable.create();
+  
+If we know the row keys and the column keys beforehand and the table size is fixed, use the create method from the class ArrayTable
+List<String> universityRowTable 
+  = Lists.newArrayList("Mumbai", "Harvard");
+List<String> courseColumnTables 
+  = Lists.newArrayList("Chemical", "IT", "Electrical");
+Table<String, String, Integer> universityCourseSeatTable
+  = ArrayTable.create(universityRowTable, courseColumnTables);
+  
+If we intend to create an immutable instance of Table whose internal data are never going to change, 
+use the ImmutableTable class (creating which follows a builder pattern)
+Table<String, String, Integer> universityCourseSeatTable
+  = ImmutableTable.<String, String, Integer> builder()
+  .put("Mumbai", "Chemical", 120).build();
+  
+--retrieval
+Table<String, String, Integer> universityCourseSeatTable 
+      = HashBasedTable.create();
+universityCourseSeatTable.put("Mumbai", "Chemical", 120);
+universityCourseSeatTable.put("Mumbai", "IT", 60);
+universityCourseSeatTable.put("Harvard", "Electrical", 60);
+universityCourseSeatTable.put("Harvard", "IT", 120);
+ 
+int seatCount 
+      = universityCourseSeatTable.get("Mumbai", "IT");
+Integer seatCountForNoEntry 
+      = universityCourseSeatTable.get("Oxford", "IT");
+assertThat(seatCount).isEqualTo(60);
+assertThat(seatCountForNoEntry).isEqualTo(null);
+
+--check presence
+boolean entryIsPresent
+      = universityCourseSeatTable.contains("Mumbai", "IT");
+boolean courseIsPresent 
+      = universityCourseSeatTable.containsColumn("IT");
+boolean universityIsPresent 
+      = universityCourseSeatTable.containsRow("Mumbai");
+boolean seatCountIsPresent 
+      = universityCourseSeatTable.containsValue(60);
+ 
+assertThat(entryIsPresent).isEqualTo(true);
+assertThat(courseIsPresent).isEqualTo(true);
+assertThat(universityIsPresent).isEqualTo(true);
+assertThat(seatCountIsPresent).isEqualTo(true);
+
+--Row Key to Cell Value Map
+We can get a Map representation with the key as a row and the value as a CellValue by providing the column key
+Map<String, Integer> universitySeatMap 
+      = universityCourseSeatTable.column("IT");
+assertThat(universitySeatMap).hasSize(2);
+assertThat(universitySeatMap.get("Mumbai")).isEqualTo(60);
+assertThat(universitySeatMap.get("Harvard")).isEqualTo(120);
+
+--Map Representation of a Table
+We can get a Map<UniversityName, Map<CoursesOffered, SeatAvailable>> representation by using the columnMap method
+Map<String, Map<String, Integer>> courseKeyUniversitySeatMap 
+      = universityCourseSeatTable.columnMap();
+assertThat(courseKeyUniversitySeatMap).hasSize(3);
+assertThat(courseKeyUniversitySeatMap.get("IT")).hasSize(2);
+assertThat(courseKeyUniversitySeatMap.get("Electrical")).hasSize(1);
+assertThat(courseKeyUniversitySeatMap.get("Chemical")).hasSize(1);
+
+--Column Key to Cell Value Map
+We can get a Map representation with the key as a column and the value as a CellValue by providing row key
+Map<String, Integer> courseSeatMap 
+      = universityCourseSeatTable.row("Mumbai");
+assertThat(courseSeatMap).hasSize(2);
+assertThat(courseSeatMap.get("IT")).isEqualTo(60);
+assertThat(courseSeatMap.get("Chemical")).isEqualTo(120);
+
+--Get Distinct Row Key
+We can get all the row keys from a table using the rowKeySet method
+Set<String> universitySet = universityCourseSeatTable.rowKeySet();
+assertThat(universitySet).hasSize(2);
+
+--Get Distinct Column Key
+We can get all column keys from a table using the columnKeySet method
+Set<String> courseSet = universityCourseSeatTable.columnKeySet();
+assertThat(courseSet).hasSize(3);
+
+
+--removal
+int seatCount 
+      = universityCourseSeatTable.remove("Mumbai", "IT");
+assertThat(seatCount).isEqualTo(60);
+assertThat(universityCourseSeatTable.remove("Mumbai", "IT")).
+      isEqualTo(null);
+
+
+
+
+
+https://www.baeldung.com/guava-collections
+
+
+--downcast a List<Parent> to a List<Child>  //a workaround for non-covariant generified collections in Java
+class CastFunction<F, T extends F> implements Function<F, T> {
+    @Override
+    public final T apply(final F from) {
+        return (T) from;
+    }
+}
+List<TypeParent> originalList = Lists.newArrayList();
+List<TypeChild> theList = Lists.transform(originalList, 
+    new CastFunction<TypeParent, TypeChild>());
+
+--simpler alternative without Guava – involving 2 cast operations
+List<Number> originalList = Lists.newArrayList();
+List<Integer> theList = (List<Integer>) (List<? extends Number>) originalList;
+
+
+--create immutable List/Set/Map directly
+ImmutableList<String> immutableList = ImmutableList.of("a", "b", "c");
+ImmutableSet<String> immutableSet = ImmutableSet.of("a", "b", "c");
+ImmutableMap<String, String> imuttableMap = 
+    ImmutableMap.of("k1", "v1", "k2", "v2", "k3", "v3");
+
+
+--create immutable List/Set/Map from a standard collection
+List<String> muttableList = Lists.newArrayList();
+ImmutableList<String> immutableList = ImmutableList.copyOf(muttableList);
+ 
+Set<String> muttableSet = Sets.newHashSet();
+ImmutableSet<String> immutableSet = ImmutableSet.copyOf(muttableSet);
+ 
+Map<String, String> muttableMap = Maps.newHashMap();
+ImmutableMap<String, String> imuttableMap = ImmutableMap.copyOf(muttableMap);
+
+
+--alternative solution using builders
+List<String> muttableList = Lists.newArrayList();
+ImmutableList<String> immutableList = 
+    ImmutableList.<String> builder().addAll(muttableList).build();
+ 
+Set<String> muttableSet = Sets.newHashSet();
+ImmutableSet<String> immutableSet = 
+    ImmutableSet.<String> builder().addAll(muttableSet).build();
+ 
+Map<String, String> muttableMap = Maps.newHashMap();
+ImmutableMap<String, String> imuttableMap = 
+    ImmutableMap.<String, String> builder().putAll(muttableMap).build();
+	
+
+https://www.baeldung.com/guava-order
+
+--nulls first
+List<Integer> toSort = Arrays.asList(3, 5, 4, null, 1, 2);
+Collections.sort(toSort, Ordering.natural().nullsFirst());
+assertThat(toSort.get(0), nullValue());
+
+--nulls last
+List<Integer> toSort = Arrays.asList(3, 5, 4, null, 1, 2);
+Collections.sort(toSort, Ordering.natural().nullsLast());
+assertThat(toSort.get(toSort.size() - 1), nullValue());
+
+--natural ordering
+List<Integer> toSort = Arrays.asList(3, 5, 4, 1, 2);
+Collections.sort(toSort, Ordering.natural());
+assertTrue(Ordering.natural().isOrdered(toSort));
+
+--chaining ordering
+List<Integer> toSort = Arrays.asList(3, 5, 4, 1, 2);
+Collections.sort(toSort, Ordering.natural().reverse());
+
+--reverse any ordering
+List<Integer> toSort = Arrays.asList(3, 5, 4, null, 1, 2);
+Collections.sort(toSort, Ordering.natural().nullsLast().reverse());
+assertThat(toSort.get(0), nullValue());
+
+--custom ordering - by string length and checking using explicit ordering
+private class OrderingByLenght extends Ordering<String> {
+    @Override
+    public int compare(String s1, String s2) {
+        return Ints.compare(s1.length(), s2.length());
+    }
+}
+List<String> toSort = Arrays.asList("zz", "aa", "b", "ccc");
+Ordering<String> byLength = new OrderingByLenght();
+Collections.sort(toSort, byLength);
+Ordering<String> expectedOrder = Ordering.explicit(Lists.newArrayList("b", "zz", "aa", "ccc"));
+assertTrue(expectedOrder.isOrdered(toSort))
+
+--cutom ordering with order chaining
+List<String> toSort = Arrays.asList("zz", "aa", null, "b", "ccc");
+Collections.sort(toSort, 
+    new OrderingByLenght().reverse().compound(Ordering.natural()).nullsLast());
+System.out.println(toSort);
+
+--sort using toString representation
+List<Integer> toSort = Arrays.asList(1, 2, 11);
+Collections.sort(toSort, Ordering.usingToString());
+Ordering<Integer> expectedOrder = Ordering.explicit(Lists.newArrayList(1, 11, 2));
+assertTrue(expectedOrder.isOrdered(toSort));
+
+--sort then binary search
+List<Integer> toSort = Arrays.asList(1, 2, 11);
+Collections.sort(toSort, Ordering.usingToString());
+int found = Ordering.usingToString().binarySearch(toSort, 2);
+System.out.println(found);
+
+--find min max without having to sort first
+List<Integer> toSort = Arrays.asList(2, 1, 11, 100, 8, 14);
+int found = Ordering.usingToString().min(toSort);
+assertThat(found, equalTo(1));
+
+--creating a sorted copy of the list from an ordering
+List<String> toSort = Arrays.asList("aa", "b", "ccc");
+List<String> sortedCopy = new OrderingByLenght().sortedCopy(toSort);
+Ordering<String> expectedOrder = Ordering.explicit(Lists.newArrayList("b", "aa", "ccc"));
+assertFalse(expectedOrder.isOrdered(toSort));
+assertTrue(expectedOrder.isOrdered(sortedCopy));
+
+--sorted partial cpoy - limit elements
+List<Integer> toSort = Arrays.asList(2, 1, 11, 100, 8, 14);
+List<Integer> leastOf = Ordering.natural().leastOf(toSort, 3);
+List<Integer> expected = Lists.newArrayList(1, 2, 8);
+assertThat(expected, equalTo(leastOf));
+
+--ordering via intermediary function
+List<Integer> toSort = Arrays.asList(2, 1, 11, 100, 8, 14);
+Ordering<Object> ordering = Ordering.natural().onResultOf(Functions.toStringFunction());
+List<Integer> sortedCopy = ordering.sortedCopy(toSort);
+List<Integer> expected = Lists.newArrayList(1, 100, 11, 14, 2, 8);
+assertThat(expected, equalTo(sortedCopy));
+//sort logic will first run the numbers through the function – transforming them into Strings – then sort with natural ordering on the Strings
+
+
+https://www.baeldung.com/guava-functions-predicates
+
+--filter a collection by condition - custom predicate
+List<Integer> numbers = Lists.newArrayList(1, 2, 3, 6, 10, 34, 57, 89);
+Predicate<Integer> acceptEven = new Predicate<Integer>() {
+    @Override
+    public boolean apply(Integer number) {
+        return (number % 2) == 0;
+    }
+};
+List<Integer> evenNumbers = Lists.newArrayList(Collections2.filter(numbers, acceptEven));
+Integer found = Collections.binarySearch(evenNumbers, 57);
+assertThat(found, lessThan(0));
+
+--filter out null from collection
+List<String> withNulls = Lists.newArrayList("a", "bc", null, "def");
+Iterable<String> withoutNuls = Iterables.filter(withNulls, Predicates.notNull());
+assertTrue(Iterables.all(withoutNuls, Predicates.notNull()));
+
+--check condition on all elements of collection
+List<Integer> evenNumbers = Lists.newArrayList(2, 6, 8, 10, 34, 90);
+Predicate<Integer> acceptEven = new Predicate<Integer>() {
+    @Override
+    public boolean apply(Integer number) {
+        return (number % 2) == 0;
+    }
+};
+assertTrue(Iterables.all(evenNumbers, acceptEven));
+
+--negate a predicate
+List<Integer> evenNumbers = Lists.newArrayList(2, 6, 8, 10, 34, 90);
+Predicate<Integer> acceptOdd = new Predicate<Integer>() {
+    @Override
+    public boolean apply(Integer number) {
+        return (number % 2) != 0;
+    }
+};
+assertTrue(Iterables.all(evenNumbers, Predicates.not(acceptOdd)));
+
+--apply simple function
+List<Integer> numbers = Lists.newArrayList(1, 2, 3);
+List<String> asStrings = Lists.transform(numbers, Functions.toStringFunction());
+assertThat(asStrings, contains("1", "2", "3"));
+
+--function chaining - predicate chaining
+List<Integer> numbers = Arrays.asList(2, 1, 11, 100, 8, 14);
+Predicate<Integer> acceptEvenNumber = new Predicate<Integer>() {
+    @Override
+    public boolean apply(Integer number) {
+        return (number % 2) == 0;
+    }
+};
+Function<Integer, Integer> powerOfTwo = new Function<Integer, Integer>() {
+    @Override
+    public Integer apply(Integer input) {
+        return (int) Math.pow(input, 2);
+    }
+};
+ 
+FluentIterable<Integer> powerOfTwoOnlyForEvenNumbers = 
+FluentIterable.from(numbers).filter(acceptEvenNumber).transform(powerOfTwo);
+assertThat(powerOfTwoOnlyForEvenNumbers, contains(4, 10000, 64, 196));
+
+--compose two function
+List<Integer> numbers = Arrays.asList(2, 3);
+Function<Integer, Integer> powerOfTwo = new Function<Integer, Integer>() {
+    @Override
+    public Integer apply(Integer input) {
+        return (int) Math.pow(input, 2);
+    }
+};
+List<Integer> result = Lists.transform(numbers, 
+    Functions.compose(powerOfTwo, powerOfTwo));
+assertThat(result, contains(16, 81));
+
+
+--create map backed by set and function
+Function<Integer, Integer> powerOfTwo = new Function<Integer, Integer>() {
+    @Override
+    public Integer apply(Integer input) {
+        return (int) Math.pow(input, 2);
+    }
+};
+Set<Integer> lowNumbers = Sets.newHashSet(2, 3, 4);
+Map<Integer, Integer> numberToPowerOfTwoMuttable = Maps.asMap(lowNumbers, powerOfTwo);
+Map<Integer, Integer> numberToPowerOfTwoImuttable = Maps.toMap(lowNumbers, powerOfTwo);
+assertThat(numberToPowerOfTwoMuttable.get(2), equalTo(4));
+assertThat(numberToPowerOfTwoImuttable.get(2), equalTo(4));
+
+
+--create a function out of predicate
+List<Integer> numbers = Lists.newArrayList(1, 2, 3, 6);
+Predicate<Integer> acceptEvenNumber = new Predicate<Integer>() {
+    @Override
+    public boolean apply(Integer number) {
+        return (number % 2) == 0;
+    }
+};
+Function<Integer, Boolean> isEventNumberFunction = Functions.forPredicate(acceptEvenNumber);
+List<Boolean> areNumbersEven = Lists.transform(numbers, isEventNumberFunction);
+assertThat(areNumbersEven, contains(false, true, false, true));
+
+
+https://www.baeldung.com/guava-cache
+
+--create the CacheLoader – used to compute the value stored in the cache
+--use the handy CacheBuilder to build our cache using the given specifications
+
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder().build(loader);
+ 
+assertEquals(0, cache.size());
+assertEquals("HELLO", cache.getUnchecked("hello"));
+assertEquals(1, cache.size());
+--using the getUnchecked() operation – this computes and loads the value into the cache if it doesn't already exist
+
+
+--Eviction Policies
+--Eviction by Size
+--limit the size of our cache using maximumSize(). If the cache reaches the limit, the oldest items will be evicted
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder().maximumSize(3).build(loader);
+ 
+cache.getUnchecked("first");
+cache.getUnchecked("second");
+cache.getUnchecked("third");
+cache.getUnchecked("forth");
+assertEquals(3, cache.size());
+assertNull(cache.getIfPresent("first"));
+assertEquals("FORTH", cache.getIfPresent("forth"));
+
+
+--Eviction by Weight
+--limit the cache size using a custom weight function. In the following code, we use the length as our custom weight function
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+Weigher<String, String> weighByLength;
+    weighByLength = new Weigher<String, String>() {
+        @Override
+        public int weigh(String key, String value) {
+            return value.length();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder()
+      .maximumWeight(16)
+      .weigher(weighByLength)
+      .build(loader);
+ 
+cache.getUnchecked("first");
+cache.getUnchecked("second");
+cache.getUnchecked("third");
+cache.getUnchecked("last");
+assertEquals(3, cache.size());
+assertNull(cache.getIfPresent("first"));
+assertEquals("LAST", cache.getIfPresent("last"));
+--The cache may remove more than one record to leave room for a new large one
+
+
+--Eviction by Time
+--use time. In the following example, we customize our cache to remove records that have been idle for 2ms
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+    cache = CacheBuilder.newBuilder()
+      .expireAfterAccess(2,TimeUnit.MILLISECONDS)
+      .build(loader);
+ 
+cache.getUnchecked("hello");
+assertEquals(1, cache.size());
+ 
+cache.getUnchecked("hello");
+Thread.sleep(300);
+ 
+cache.getUnchecked("test");
+assertEquals(1, cache.size());
+assertNull(cache.getIfPresent("hello"));
+
+--evict records based on their total live time. In the following example, the cache will remove the records after 2ms of being stored
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+    cache = CacheBuilder.newBuilder()
+      .expireAfterWrite(2,TimeUnit.MILLISECONDS)
+      .build(loader);
+ 
+cache.getUnchecked("hello");
+assertEquals(1, cache.size());
+Thread.sleep(300);
+cache.getUnchecked("test");
+assertEquals(1, cache.size());
+assertNull(cache.getIfPresent("hello"));
+
+
+--Weak Keys
+--make our cache keys have weak references – allowing the garbage collector to collect cache key that are not referenced elsewhere
+--By default, both cache keys and values have strong references but we can make our cache store the keys using weak references using 
+weakKeys() 
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder().weakKeys().build(loader);
+
+
+
+--Soft Values
+--allow garbage collector to collect our cached values by using softValues()
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder().softValues().build(loader);
+--Many soft references may affect the system performance – it's preferred to use maximumSize()
+
+
+--Handle null Values
+--By default, Guava Cache will throw exceptions if you try to load a null value – as it doesn't make any sense to cache a null.
+--But if null value means something in your code, then you can make good use of the Optional class 
+CacheLoader<String, Optional<String>> loader;
+    loader = new CacheLoader<String, Optional<String>>() {
+        @Override
+        public Optional<String> load(String key) {
+            return Optional.fromNullable(getSuffix(key));
+        }
+    };
+ 
+    LoadingCache<String, Optional<String>> cache;
+    cache = CacheBuilder.newBuilder().build(loader);
+ 
+    assertEquals("txt", cache.getUnchecked("text.txt").get());
+    assertFalse(cache.getUnchecked("hello").isPresent());
+}
+private String getSuffix(final String str) {
+    int lastIndex = str.lastIndexOf('.');
+    if (lastIndex == -1) {
+        return null;
+    }
+    return str.substring(lastIndex + 1);
+}
+
+
+
+--Refresh the Cache
+--We can refresh our cache automatically using refreshAfterWrite().
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder()
+      .refreshAfterWrite(1,TimeUnit.MINUTES)
+      .build(loader);
+--you can refresh specific record manually using refresh(key)
+
+
+--Preload the Cache
+--insert multiple records in our cache using putAll() method. In the following example, we add multiple records into our cache using a Map
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+cache = CacheBuilder.newBuilder().build(loader);
+ 
+Map<String, String> map = new HashMap<String, String>();
+map.put("first", "FIRST");
+map.put("second", "SECOND");
+cache.putAll(map);
+assertEquals(2, cache.size());
+
+
+--RemovalNotification
+--Sometimes, you need to take some actions when a record is removed from the cache
+--We can register a RemovalListener to get notifications of a record being removed. 
+--We also have access to the cause of the removal – via the getCause() method.
+CacheLoader<String, String> loader;
+    loader = new CacheLoader<String, String>() {
+        @Override
+        public String load(final String key) {
+            return key.toUpperCase();
+        }
+    };
+ 
+RemovalListener<String, String> listener;
+    listener = new RemovalListener<String, String>() {
+        @Override
+        public void onRemoval(RemovalNotification<String, String> n){
+            if (n.wasEvicted()) {
+                String cause = n.getCause().name();
+                assertEquals(RemovalCause.SIZE.toString(),cause);
+            }
+        }
+    };
+ 
+LoadingCache<String, String> cache;
+    cache = CacheBuilder.newBuilder()
+      .maximumSize(3)
+      .removalListener(listener)
+      .build(loader);
+ 
+    cache.getUnchecked("first");
+    cache.getUnchecked("second");
+    cache.getUnchecked("third");
+    cache.getUnchecked("last");
+    assertEquals(3, cache.size());
+
+
+Guava cache implementation:
+
+it is thread-safe
+you can insert values manually into the cache using put(key,value)
+you can measure your cache performance using CacheStats ( hitRate(), missRate(), ..)
+
+
+
+https://www.baeldung.com/guava-eventbus
+
+--creating event bus
+EventBus eventBus = new EventBus();
+
+--creating event listner
+We create a listener class that has handler methods to receive specific events. 
+We annotate the handler methods with @Subscribe. The method accepts as an argument an object of the same type as the event being posted:
+public class EventListener {
+ 
+    private static int eventsHandled;
+ 
+    @Subscribe
+    public void stringEvent(String event) {
+        eventsHandled++;
+    }
+}
+
+--registering event listner
+We can subscribe to an event by registering our EventListener class on the EventBus:
+EventListener listener = new EventListener();
+eventBus.register(listener);
+
+--unregistering event listner
+If for any reason we want to unregister a class from the EventBus, that can also be easily done
+eventBus.unregister(listener);
+
+--posting events
+We can post events as well with the EventBus:
+@Test
+public void givenStringEvent_whenEventHandled_thenSuccess() {
+    eventBus.post("String Event");
+    assertEquals(1, listener.getEventsHandled());
+}
+
+
+--custom event
+We can also specify a custom event class and post that event. We start by creating a custom event
+public class CustomEvent {
+    private String action;
+ 
+    // standard getters/setters and constructors
+}
+
+Adding a handler method in the EventListener class for that event:
+@Subscribe
+public void someCustomEvent(CustomEvent customEvent) {
+    eventsHandled++;
+}
+
+We can now post our custom event
+@Test
+public void givenCustomEvent_whenEventHandled_thenSuccess() {
+    CustomEvent customEvent = new CustomEvent("Custom Event");
+    eventBus.post(customEvent);
+ 
+    assertEquals(1, listener.getEventsHandled());
+}
+
+
+--Handling an Unsubscribed Event
+We are provided with a DeadEvent class that allows us to handle any events that have no listeners. 
+We can add a method to handle the DeadEvent class
+@Subscribe
+public void handleDeadEvent(DeadEvent deadEvent) {
+    eventsHandled++;
+}
+
+
+
+https://www.baeldung.com/guava-21-new
+
+Streams.stream()
+//Streams class provides four ways to create streams using Iterable, Iterator, Optional and Collection
+List<Integer> numbers = Arrays.asList(1,2,3,4,5,6,7,8,9,10);
+Stream<Integer> streamFromCollection = Streams.stream(numbers);
+Stream<Integer> streamFromIterator = Streams.stream(numbers.iterator());
+Stream<Integer> streamFromIterable = Streams.stream((Iterable<Integer>) numbers);
+Stream<Integer> streamFromOptional = Streams.stream(Optional.of(1));
+
+//Streams class also provides flavors with OptionalDouble, OptionalLong and OptionalInt. 
+//These methods return a stream containing only that element otherwise empty stream
+LongStream streamFromOptionalLong = Streams.stream(OptionalLong.of(1));
+IntStream streamFromOptionalInt = Streams.stream(OptionalInt.of(1));
+DoubleStream streamFromOptionalDouble = Streams.stream(OptionalDouble.of(1.0));
+
+Streams.concat()
+//Streams class provides methods for concating more than one homogeneous streams.
+//The concat functionality comes in a few flavors – LongStream, IntStream and DoubleStream.
+Stream<Integer> concatenatedStreams = Streams.concat(streamFromCollection, streamFromIterable,streamFromIterator);
+
+
+Streams.findLast()
+//Streams have a utility method to find the last element in the stream by using findLast() method.
+//This method either returns last element or Optional.empty() if the stream is there are no elements in the stream
+//The findLast() method works for LongStream, IntStream and DoubleStream.
+List<Integer> integers = Arrays.asList(1,2,3,4,5,6,7,8,9,10);
+Optional<Integer> lastItem = Streams.findLast(integers.stream());
+
+
+Streams.mapWithIndex()
+//By using mapWithIndex() method, each element of the stream carries information about their respective position (index)
+mapWithIndex( Stream.of("a", "b", "c"), (str, index) -> str + ":" + index)
+//This will return Stream.of(“a:0?,”b:1?,”c:2”).
+//Same can be achieved with IntStream, LongStream and DoubleStream using overloaded mapWithIndex().
+
+
+Streams.zip()
+//In order to map corresponding elements of two streams using some function, just use zip method of Streams
+Streams.zip(
+  Stream.of("candy", "chocolate", "bar"),
+  Stream.of("$1", "$2","$3"),
+  (arg1, arg2) -> arg1 + ":" + arg2
+);
+//This will return Stream.of(“candy:$1?,”chocolate:$2?,”bar:$3”);
+//The resulting stream will only be as long as the shorter of the two input streams; 
+//if one stream is longer, its extra element will be ignored
+
+
+Comparators
+//Guava Ordering class is deprecated and in the phase of deletion in newer versions. 
+//Most of the functionalities of Ordering class are already enlisted in JDK 8.
+//Guava introduces Comparators to provide additional features of Ordering which are not yet provided by the Java 8 standard libs.
+
+Comparators.isInOrder()
+//returns true if each element in the Iterable is greater than or equal to the preceding one, as specified by the Comparator
+List<Integer> integers = Arrays.asList(1,2,3,4,4,6,7,8,9,10);
+boolean isInAscendingOrder = Comparators.isInOrder(
+  integers, new AscedingOrderComparator());
+  
+Comparators.isInStrictOrder()
+//similar to the isInOrder() method but it strictly holds the condition, the element cannot be equal to the preceding one, 
+//it has to be greater than. The previous code will return false for this method
+
+Comparators.lexicographical()
+//This API returns a new Comparator instance – which sorts in lexicographical (dictionary) order comparing corresponding elements pairwise. 
+//Internally, it creates a new instance of LexicographicalOrdering<S>()
+
+
+Interners.InternerBuilder
+//This is an internal builder class to already existing Interners in Guava library. It provides some handy method to define concurrency level and type (weak or strong) of Interner you prefer
+Interners interners = Interners.newBuilder()
+  .concurrencyLevel(2)
+  .weak()
+  .build();
+
+
+
+
+https://www.baeldung.com/guava-rate-limiter
+
+//The RateLimiter class is a construct that allows us to regulate the rate at which some processing happens. 
+//If we create a RateLimiter with N permits – it means that process can issue at most N permits per second.
+
+--Creating and Using RateLimiter
+//limit the rate of execution of the doSomeLimitedOperation() to 2 times per second
+//We can create a RateLimiter instance using its create() factory method
+RateLimiter rateLimiter = RateLimiter.create(2);
+long startTime = ZonedDateTime.now().getSecond();
+rateLimiter.acquire(1);
+doSomeLimitedOperation();
+rateLimiter.acquire(1);
+doSomeLimitedOperation();
+long elapsedTimeSeconds = ZonedDateTime.now().getSecond() - startTime;
+
+--Acquiring Permits in a Blocking Way
+RateLimiter rateLimiter = RateLimiter.create(100);
+long startTime = ZonedDateTime.now().getSecond();
+IntStream.range(0, 1000).forEach(i -> {
+        rateLimiter.acquire();
+        doSomeLimitedOperation();
+    });
+long elapsedTimeSeconds = ZonedDateTime.now().getSecond() - startTime;
+assertThat(elapsedTimeSeconds >= 10);
+//this is a blocking method and we should be cautious when using it. When the acquire() method gets called, it blocks the executing thread until a permit is available.
+//Calling the acquire() without an argument is the same as calling it with a one as an argument – it will try to acquire one permit.
+
+
+--Acquiring Permits With a Timeout
+//The RateLimiter API has also a very useful acquire() method that accepts a timeout and TimeUnit as arguments.
+//Calling this method when there are no available permits will cause it to wait for specified time and then time out – if there are not enough available permits within the timeout.
+//When there are no available permits within the given timeout, it returns false. If an acquire() succeeds, it returns true
+RateLimiter rateLimiter = RateLimiter.create(1);
+rateLimiter.acquire();
+boolean result = rateLimiter.tryAcquire(2, 10, TimeUnit.MILLISECONDS);
+assertThat(result).isFalse();
+
+
+https://www.baeldung.com/guava-math
+
+
+https://www.baeldung.com/guava-minmax-priority-queue-and-evicting-queue
+
+--EvictingQueue
+//EvictingQueue is an implementation of the circular buffer concept
+//when constructing an instance of the queue, we need to supply the maximum queue size as an argument.
+//When we want to add a new item to the EvictingQueue, and the queue is full, it automatically evicts an element from its head
+//When comparing to the standard queue behavior, adding an element to the full queue does not block but removes the head element and adds a new item to the tail.
+//We can imagine the EvictingQueue as a ring to which we are inserting elements in the append-only fashion. 
+//If there is an element on the position on which we want to add a new element, we just override the existing element at the given position.
+Queue<Integer> evictingQueue = EvictingQueue.create(10);
+IntStream.range(0, 10)
+  .forEach(evictingQueue::add);
+assertThat(evictingQueue)
+  .containsExactly(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+evictingQueue.add(100);
+assertThat(evictingQueue)
+  .containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 100);
+
+
+--MinMaxPriorityQueue
+//The MinMaxPriorityQueue provides constant-time access to its least and greatest elements.
+//To get the least element, we need to call the peekFirst() method. To get the greatest element we can call the peekLast() method. 
+//Note that these do not remove elements from a queue, they only retrieve it.
+//The ordering of elements is done by the Comparator that needs to be passed to the constructor of this queue
+
+class CustomClass {
+    private Integer value;
+ 
+    // standard constructor, getters and setters
+}
+
+MinMaxPriorityQueue<CustomClass> queue = MinMaxPriorityQueue
+  .orderedBy(Comparator.comparing(CustomClass::getValue))
+  .maximumSize(10)
+  .create();
+ 
+IntStream
+  .iterate(10, i -> i - 1)
+  .limit(10)
+  .forEach(i -> queue.add(new CustomClass(i)));
+
+assertThat(
+  queue.peekFirst().getValue()).isEqualTo(1);
+assertThat(
+  queue.peekLast().getValue()).isEqualTo(10);
+
+queue.add(new CustomClass(-1));
+  
+assertThat(
+  queue.peekFirst().getValue()).isEqualTo(-1);
+assertThat(
+  queue.peekLast().getValue()).isEqualTo(9);
+
+//According to the specification of the MinMaxPriorityQueue, in case the queue is full, adding an element that is greater than the currently greatest element will remove that same element – effectively ignoring it.
+
+queue.add(new CustomClass(100));
+assertThat(queue.peekFirst().getValue())
+  .isEqualTo(-1);
+assertThat(queue.peekLast().getValue())
+  .isEqualTo(9);
+
+
+https://www.baeldung.com/guava-bloom-filter
+
+
+//A Bloom filter is a memory-efficient, probabilistic data structure that we can use to answer the question of whether or not a given element is in a set.
+//There are no false negatives with a Bloom filter, so when it returns false, we can be 100% certain that the element is not in the set
+//a Bloom filter can return false positives, so when it returns true, there is a high probability that the element is in the set, but we can not be 100% sure
+
+//The Bloom filter is designed to be space-efficient and fast. When using it, we can specify the probability of false positive responses which we can accept and, according to that configuration, the Bloom filter will occupy as little memory as it can.
+
+//Due to this space-efficiency, the Bloom filter will easily fit in memory even for huge numbers of elements. Some databases, including Cassandra and Oracle, use this filter as the first check before going to disk or cache, for example, when a request for a specific ID comes in.
+
+//If the filter returns that the ID is not present, the database can stop further processing of the request and return to the client. Otherwise, it goes to the disk and returns the element if it is found on disk.
+
+--Creating a Bloom Filter
+//Suppose we want to create a Bloom filter for up to 500 Integers and that we can tolerate a one-percent (0.01) probability of false positives.
+BloomFilter<Integer> filter = BloomFilter.create(
+  Funnels.integerFunnel(),
+  500,
+  0.01);
+//add some numbers to the filter
+filter.put(1);
+filter.put(2);
+filter.put(3);
+assertThat(filter.mightContain(1)).isTrue();
+assertThat(filter.mightContain(2)).isTrue();
+assertThat(filter.mightContain(3)).isTrue();
+assertThat(filter.mightContain(100)).isFalse();  
+
+//When mightContain() returns true in our example, we can be 99% certain that the element is in the filter, and there is a one-percent probability that the result is a false positive. 
+//When the filter returns false, we can be 100% certain that the element is not present.
+
+--Over-Saturated Bloom Filter
+//When we design our Bloom filter, it is important that we provide a reasonably accurate value for the expected number of elements. Otherwise, our filter will return false positives at a much higher rate than desired. 
+//Suppose that we created a filter with a desired false-positive probability of one percent and an expected some elements equal to five, but then we inserted 100,000 elements
+
+BloomFilter<Integer> filter = BloomFilter.create(
+  Funnels.integerFunnel(),
+  5,
+  0.01);
+ 
+IntStream.range(0, 100_000).forEach(filter::put);
+
+//Because the expected number of elements is so small, the filter will occupy very little memory.
+//However, as we add more items than expected, the filter becomes over-saturated and has a much higher probability of returning false positive results than the desired one percent:
+assertThat(filter.mightContain(1)).isTrue();
+assertThat(filter.mightContain(2)).isTrue();
+assertThat(filter.mightContain(3)).isTrue();
+assertThat(filter.mightContain(1_000_000)).isTrue();
+
+//Note that the mightContatin() method returned true even for a value that we didn't insert into the filter previously.
+
+
+
+
+
+https://www.baeldung.com/guava-memoizer
+
+//Memoization is a technique that avoids repeated execution of a computationally expensive function by caching the result of the first execution of the function.
+
+--Memoization vs. Caching
+//Memoization is similar to caching with regards to memory storage. Both techniques attempt to increase efficiency by reducing the number of calls to computationally expensive code.
+//However, whereas caching is a more generic term that addresses the problem at the level of class instantiation, object retrieval, or content retrieval, memoization solves the problem at the level of method/function execution.
+
+//Memoization applies to functions with no argument (Supplier) and functions with exactly one argument (Function)
+//We can call memoization APIs on-demand and specify an eviction policy which controls the number of entries held in memory and prevents the uncontrolled growth of memory in use by evicting/removing an entry from the cache once it matches the condition of the policy.
+
+
+--Supplier Memoization
+//There are two methods in the Suppliers class that enable memoization: memoize, and memoizeWithExpiration.
+//When we want to execute the memoized method, we can simply call the get method of the returned Supplier. Depending on whether the method's return value exists in memory, the get method will either return the in-memory value or execute the memoized method and pass the return value to the caller.
+
+
+--Supplier Memoization Without Eviction
+Supplier<String> memoizedSupplier = Suppliers.memoize(
+  CostlySupplier::generateBigNumber);
+
+//Since we haven't specified an eviction policy, once the get method is called, the returned value will persist in memory while the Java application is still running. Any calls to get after the initial call will return the memoized value.
+
+
+--Supplier Memoization With Eviction by Time-To-Live (TTL)
+//Suppose we only want to keep the returned value from the Supplier in the memo for a certain period.
+//We can use the Suppliers‘ memoizeWithExpiration method and specify the expiration time with its corresponding time unit (e.g., second, minute), in addition to the delegated Supplier:
+
+Supplier<String> memoizedSupplier = Suppliers.memoizeWithExpiration(
+  CostlySupplier::generateBigNumber, 5, TimeUnit.SECONDS);
+  
+//After the specified time has passed (5 seconds), the cache will evict the returned value of the Supplier from memory and any subsequent call to the get method will re-execute generateBigNumber.
+
+
+--Function Memoization
+//To memoize a method that takes a single argument we build a LoadingCache map using CacheLoader‘s from method to provision the builder concerning our method as a Guava Function.
+//LoadingCache is a concurrent map, with values automatically loaded by CacheLoader. CacheLoader populates the map by computing the Function specified in the from method, and putting the returned value into the LoadingCache.
+//LoadingCache‘s key is the Function‘s argument/input, while the map's value is the Function‘s returned value
+LoadingCache<Integer, BigInteger> memo = CacheBuilder.newBuilder()
+  .build(CacheLoader.from(FibonacciSequence::getFibonacciNumber));
+  
+//Since LoadingCache is a concurrent map, it doesn't allow null keys or values. Therefore, we need to ensure that the Function doesn't support null as an argument or return null values.
+
+
+--Function Memoization With Eviction Policies
+//We can apply different Guava Cache's eviction policy when we memoize a Function
+
+LoadingCache<Integer, BigInteger> memo = CacheBuilder.newBuilder()
+  .expireAfterAccess(2, TimeUnit.SECONDS)
+  .build(CacheLoader.from(Fibonacci::getFibonacciNumber));
+
+public static BigInteger getFibonacciNumber(int n) {
+    if (n == 0) {
+        return BigInteger.ZERO;
+    } else if (n == 1) {
+        return BigInteger.ONE;
+    } else {
+        return getFibonacciNumber(n - 1).add(getFibonacciNumber(n - 2));
+    }
+}
+
+//Without memoization, when the input value is relatively high, the execution of the function will be slow.
+//To improve the efficiency and performance, we can memoize getFibonacciNumber using CacheLoader and CacheBuilder, specifying the eviction policy if necessary.
+//In the following example, we remove the oldest entry once the memo size has reached 100 entries
+public class FibonacciSequence {
+    private static LoadingCache<Integer, BigInteger> memo = CacheBuilder.newBuilder()
+      .maximumSize(100)
+      .build(CacheLoader.from(FibonacciSequence::getFibonacciNumber));
+ 
+    public static BigInteger getFibonacciNumber(int n) {
+        if (n == 0) {
+            return BigInteger.ZERO;
+        } else if (n == 1) {
+            return BigInteger.ONE;
+        } else {
+            return memo.getUnchecked(n - 1).add(memo.getUnchecked(n - 2));
+        }
+    }
+}
+
+
+//Here, we use getUnchecked method which returns the value if exists without throwing a checked exception.
+//In this case, we don't need to explicitly handle the exception when specifying getFibonacciNumber method reference in the CacheLoader‘s from method call.
+
+
+--Factorial Example
+public static BigInteger getFactorial(int n) {
+    if (n == 0) {
+        return BigInteger.ONE;
+    } else {
+        return BigInteger.valueOf(n).multiply(getFactorial(n - 1));
+    }
+}
+
+public class Factorial {
+    private static LoadingCache<Integer, BigInteger> memo = CacheBuilder.newBuilder()
+      .build(CacheLoader.from(Factorial::getFactorial));
+ 
+    public static BigInteger getFactorial(int n) {
+        if (n == 0) {
+            return BigInteger.ONE;
+        } else {
+            return BigInteger.valueOf(n).multiply(memo.getUnchecked(n - 1));
+        }
+    }
+}
+
+
+
+
+https://www.baeldung.com/guava-string-charmatcher
+
+--Remove Special Characters from a String
+String input = "H*el.lo,}12";
+CharMatcher matcher = CharMatcher.JAVA_LETTER_OR_DIGIT;
+String result = matcher.retainFrom(input);
+assertEquals("Hello12", result);
+
+
+--Remove Non ASCII Characters From String
+String input = "?hello£";
+String result = CharMatcher.ASCII.retainFrom(input);
+assertEquals("hello", result);
+result = CharMatcher.inRange('0', 'z').retainFrom(input);
+assertEquals("hello", result);
+
+
+--Remove Characters Not in the Charset
+Charset charset = Charset.forName("cp437");
+CharsetEncoder encoder = charset.newEncoder();
+Predicate<Character> inRange = new Predicate<Character>() {
+        @Override
+        public boolean apply(Character c) {
+            return encoder.canEncode(c);
+        }
+    };
+String result = CharMatcher.forPredicate(inRange)
+                               .retainFrom("hello?");
+assertEquals("hello", result);
+
+
+--Validate String
+String input = "hello";
+boolean result = CharMatcher.JAVA_LOWER_CASE.matchesAllOf(input);
+assertTrue(result);
+result = CharMatcher.is('e').matchesAnyOf(input);
+assertTrue(result);
+result = CharMatcher.JAVA_DIGIT.matchesNoneOf(input);
+assertTrue(result);
+
+
+--Trim String
+String input = "---hello,,,";
+String result = CharMatcher.is('-').trimLeadingFrom(input);
+assertEquals("hello,,,", result);
+result = CharMatcher.is(',').trimTrailingFrom(input);
+assertEquals("---hello", result);
+result = CharMatcher.anyOf("-,").trimFrom(input);
+assertEquals("hello", result);
+
+
+--Collapse a String
+String input = "       hel    lo      ";
+String result = CharMatcher.is(' ').collapseFrom(input, '-');
+assertEquals("-hel-lo-", result);
+result = CharMatcher.is(' ').trimAndCollapseFrom(input, '-');
+assertEquals("hel-lo", result);
+
+
+--Replace from String
+String input = "apple-banana.";
+String result = CharMatcher.anyOf("-.").replaceFrom(input, '!');
+assertEquals("apple!banana!", result);
+result = CharMatcher.is('-').replaceFrom(input, " and ");
+assertEquals("apple and banana.", result);
+
+
+--Count Character Occurrences
+String input = "a, c, z, 1, 2";
+int result = CharMatcher.is(',').countIn(input);
+assertEquals(4, result);
+result = CharMatcher.inRange('a', 'h').countIn(input);
+assertEquals(2, result);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

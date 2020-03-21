@@ -1,0 +1,118 @@
+https://dzone.com/articles/how-three-fundamental-data-structures-impact-stora
+
+
+While data can be stored in many different ways, we need to effectively organize the data in order to search for it and access it. In the case 
+of SQL and NoSQL, both solutions build special data structures called "indexes." The data structure chosen often helps to determine the 
+performance characteristics of the store and retrieve commands.
+
+
+1. B-Trees
+A traditional and widely-used data structure is called "B-tree."
+B-tree data structures' performance characteristics are well understood. In general, all operations perform well when the data size fits into 
+the available memory. (By memory, I mean the amount of RAM accessible by the RDBMS in either the physical server or virtual server.) This 
+memory limit is usually a hard restriction.
+
+As soon as the data size exceeds available memory, performance drops rapidly.
+Choosing a flash-based storage helps performance, but only to a certain extent—memory limits still cause performance to suffer.
+
+B-tree-based structures were designed for optimal data retrieval performance, not data storage. This shortcoming created a need for data 
+structures that provide better performance for data storage. So, when is B-tree a good solution for your applications? The chart above provides 
+clues:
+
+When data size doesn’t exceed memory limits
+When the application is mostly performing read (SELECT) operations
+When read performance is more important than write performance
+
+Events that might exceed B-tree performance limits include: accepting and storing event logs; storing measurements from a high-frequency 
+sensor; tracking user clicks; and so on.
+In a majority of cases, it is possible to solve B-tree performance issues with more memory or faster physical storage (see previous chart). But 
+when hardware adjustments aren’t an option, a different data structure can help.
+
+
+
+
+2. LSM Trees
+log structured merge
+The first mention of LSM trees dates back to 1996, and corresponds to Google BigTables. Later it was implemented in products such as 
+Cassandra, LevelDB, and most recently in RocksDB.
+
+An LSM tree works by:
+Storing incoming modify operations in a buffer (usually named "memtable")
+Sorting and storing the data when the buffer is full
+
+key-value pair are inserted into memtable, memtable are sorted by keys.
+when memtable are full, it is being flushed/write to SST file
+
+what are the drawbacks?
+As we continue to insert users and write to the disk, LSM creates an increasing number of "SST files." Each of these files are sorted, and 
+there is no global order. Moreover, the same key (for non-unique indexes) can end up in different files. 
+
+This organization makes searching an individual file fast, but searching globally slow. For example, if we want to find the "user_id" for a 
+user with email w7hl@125msxuyf7.com, we would need to look in each file individually.
+This presents two problems:
+Searching data by an individual key
+Searching data by a range of keys (e.g., all users with "year_of_ birth" between 1970 and 1990)
+
+In order to address SST files’ distributed nature, production software often implements different maintenance logic:
+File compaction: merging files into one
+File levels: making file hierarchies, to avoid checking each file for an existing key
+Bloomfilters: helps lookup individual keys faster (but doesn’t help with ranges)
+
+
+
+
+3. Fractal Tree
+Fractal Tree data structures are closer to traditional B-tree structures—but instead of applying changes immediately, changes are buffered. 
+As information exceeds the limits of the main index memory, the tree data structure buffers large groups of messages. The buffered data is 
+slowly pushed down the tree as the buffers fill up. When data gets to a leaf node, there is a single IO applied to the data. This helps avoid 
+random operations causing performance degradation by performing buffer changes all at once.
+
+Data compression reduces read IO further.
+
+By combining all writes, Fractal Trees save time by performing a single transaction rather than a number of random ones. However, because a 
+huge number of messages reside in the buffer, SELECT functions now must traverse through all the messages in order to find the correct one 
+(and this is especially bad for point SELECT queries).
+
+Primary key or unique key constraints require a HIDDEN POINT SELECT lookup! This means that both a UNIQUE KEY and a non-sequence PRIMARY KEY 
+are performance killers for Fractal Tree data structures.
+
+Fractal Trees are a good structure for databases with a lot of tables, indexes (preferably non-unique indexes), and a heavy write workload. 
+It is also good for systems with slow storage times, or for saving space when the storage is fast but expensive.
+
+Lastly, this is often a good fit for cloud-based database environments, where again storage is often slow (or if fast, expensive).
+
+
+
+
+Implication for Slow Reads
+Unfortunately for performance, LSM and Fractal Trees are less friendly for read operations.
+
+Direct and implicit read operations are slower for LSM and Fractal Tree structures. Things like unique key constraints make insert and update 
+transactions slower (because the background data is checked to see if the value exists).
+
+Foreign key constraints will also slow down insert and update transactions on corresponding tables. Some schemas don’t support foreign keys 
+(or unique keys, for that matter).
+
+Finally, select index and join operation transactions can also be affected. One way around this issue is to use covering indexes. A covering 
+index contains all of or more of the columns you need for your query.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
