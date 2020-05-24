@@ -1,0 +1,132 @@
+JMS
+
+https://www.oracle.com/technical-resources/articles/java/intro-java-message-service.html
+
+
+Architecture
+A JMS application is composed of the following parts:
+
+A JMS provider: A messaging system that implements the JMS specification.
+JMS clients: Java applications that send and receive messages.
+Messages: Objects that are used to communicate information between JMS clients.
+Administered objects: Preconfigured JMS objects that are created by an administrator for the use of JMS clients.
+
+
+Message Delivery Models
+JMS supports two different message delivery models:
+
+Point-to-Point (Queue destination): In this model, a message is delivered from a producer to one consumer. The messages are delivered to the 
+destination, which is a queue, and then delivered to one of the consumers registered for the queue. While any number of producers can send 
+messages to the queue, each message is guaranteed to be delivered, and consumed by one consumer. If no consumers are registered to consume the 
+messages, the queue holds them until a consumer registers to consume them.
+
+Publish/Subscribe (Topic destination): In this model, a message is delivered from a producer to any number of consumers. Messages are 
+delivered 
+to the topic destination, and then to all active consumers who have subscribed to the topic. In addition, any number of producers can send 
+messages to a topic destination, and each message can be delivered to any number of subscribers. If there are no consumers registered, the 
+topic destination doesn't hold messages unless it has durable subscription for inactive consumers. A durable subscription represents a 
+consumer 
+registered with the topic destination that can be inactive at the time the messages are sent to the topic.
+
+
+
+The JMS Programming Model
+A JMS application consists of a set of application-defined messages and a set of clients that exchange them. JMS clients interact by sending 
+and receiving messages using the JMS API. A message is composed of three parts: header, properties, and a body.
+
+The header, which is required for every message, contains information that is used for routing and identifying messages. Some of these fields 
+are set automatically, by the JMS provider, during producing and delivering a message, and others are set by the client on a message by 
+message basis.
+
+Properties, which are optional, provide values that clients can use to filter messages. They provide additional information about the data, 
+such as which process created it, the time it was created. Properties can be considered as an extension to the header, and consist of 
+property name/value pairs. Using properties, clients can fine-tune their selection of messages by specifying certain values that act as 
+selection criteria.
+
+The body, which is also optional, contains the actual data to be exchanged. The JMS specification defined six type or classes of messages 
+that a JMS provider must support:
+
+Message: This represents a message without a message body.
+StreamMessage: A message whose body contains a stream of Java primitive types. It is written and read sequentially.
+MapMessage: A message whose body contains a set of name/value pairs. The order of entries is not defined.
+TextMessage: A message whose body contains a Java string...such as an XML message.
+ObjectMessage: A message whose body contains a serialized Java object.
+BytesMessage: A message whose body contains a stream of uninterpreted bytes.
+
+
+
+Producing and Consuming Messages
+Here are the necessary steps to develop clients to produce and consumer messages. Note that there are some common steps that shouldn't be 
+duplicated if the client is both producing and consuming messages.
+
+ConnectionFactory: creates Connection
+Connection: creates Session
+Session: creates Message, MessageProducer, MessageConsumer
+Message: 
+MessageProducer: sends to destination
+MessageConsumer: receives from destination
+
+
+
+Synchronous and Asynchronous Message Consumption
+A JMS client can consume messages either synchronously or asynchronously.
+
+Synchronous: In this mode, a client receives a message by invoking the receive() method of the MessageConsumer object. The application thread 
+blocks until the method returns, and this has the consequence that if a message is not available, it blocks until a message becomes available 
+or the receive() method times out. Also, note that in this model the client can consume one message at a time.
+
+Asynchronous: In this mode, the client registers a MessageListener object with a message consumer. This is like a call-back where the client 
+consumes a message when the session invokes the onMessage() method. In other words, the application's thread doesn't block.
+
+
+
+Reliable Messaging
+JMS defines two delivery modes:
+
+Persistent messages: Guaranteed to be successfully consumed once and only once. Messages are not lost.
+Non-persistent messages: Guaranteed to be delivered at most once. Message loss is not a concern.
+
+This, however, is all about performance trade-offs. The more reliable the delivery of messages, the more bandwidth and overhead required to 
+achieve that reliability. Performance can be maximized by producing non-persistent messages, or you can maximize the reliability by producing 
+persistent messages.
+
+
+
+
+
+
+
+https://www.baeldung.com/spring-jms
+https://javaee.github.io/glassfish/doc/4.0/mq-tech-over.pdf
+https://docs.oracle.com/cd/E19435-01/819-0069/index.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

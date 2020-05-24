@@ -1,0 +1,387 @@
+Tree Traversal
+
+				1
+		2				3
+	4		5
+
+
+Depth First Traversals:
+(a) Inorder (Left, Root, Right) : 4 2 5 1 3
+(b) Preorder (Root, Left, Right) : 1 2 4 5 3
+(c) Postorder (Left, Right, Root) : 4 5 2 3 1
+
+
+
+Breadth First or Level Order Traversal : 1 2 3 4 5
+
+
+
+Binary Tree:
+A tree whose elements have at most 2 children is called a binary tree. 
+Since each element in a binary tree can have only 2 children, we typically name them the left and right child.
+Trees (with some ordering e.g., BST) provide moderate access/search (quicker than Linked List and slower than arrays).
+Trees provide moderate insertion/deletion (quicker than Arrays and slower than Unordered Linked Lists).
+Like Linked Lists and unlike Arrays, Trees don’t have an upper limit on number of nodes as nodes are linked using pointers.
+Tree is a hierarchical data structure.
+
+The maximum number of nodes at level ‘l’ of a binary tree is 2 to the power (l-1).
+Maximum number of nodes in a binary tree of height ‘h’ is (2 to the power h) – 1.
+In a Binary Tree with N nodes, minimum possible height or minimum number of levels is  Log to base 2 of (N+1) 
+A Binary Tree with L leaves has at least    (Log2L)  + 1   levels 
+A Binary tree has maximum number of leaves (and minimum number of levels) when all levels are fully filled.
+In Binary tree where every node has 0 or 2 children, number of leaf nodes is always one more than nodes with two children.
+
+Full Binary Tree A Binary Tree is full if every node has 0 or 2 children.
+We can also say a full binary tree is a binary tree in which all nodes except leaves have two children.
+In a Full Binary, number of leaf nodes is number of internal nodes plus 1
+
+
+Complete Binary Tree: A Binary Tree is complete Binary Tree if all levels are completely filled except possibly the last level and the last 
+level has all keys as left as possible
+Practical example of Complete Binary Tree is Binary Heap.
+
+
+Perfect Binary Tree A Binary tree is Perfect Binary Tree in which all internal nodes have two children and all leaves are at the same level.
+A Perfect Binary Tree of height h (where height is the number of nodes on the path from the root to leaf) has 2h – 1 node.
+
+
+Balanced Binary Tree
+A binary tree is balanced if the height of the tree is O(Log n) where n is the number of nodes. 
+For Example, AVL tree maintains O(Log n) height by making sure that the difference between heights of left and right subtrees is atmost 1. 
+Red-Black trees maintain O(Log n) height by making sure that the number of Black nodes on every root to leaf paths are same and there are no 
+adjacent red nodes. 
+Balanced Binary Search trees are performance wise good as they provide O(log n) time for search, insert and delete.
+
+
+A degenerate (or pathological) tree A Tree where every internal node has one child. Such trees are performance-wise same as linked list.
+
+
+Complexity of different operations in
+
+Binary Tree –
+In a binary tree, a node can have maximum two children. Consider the left skewed binary tree
+7 - 1 - 2
+Searching: For searching element 2, we have to traverse all elements (assuming we do breadth first traversal). Therefore, searching in binary 
+tree has worst case complexity of O(n).
+Insertion: For inserting element as left child of 2, we have to traverse all elements. Therefore, insertion in binary tree has worst case 
+complexity of O(n).
+Deletion: For deletion of element 2, we have to traverse all elements to find 2 (assuming we do breadth first traversal). Therefore, deletion 
+in binary tree has worst case complexity of O(n).
+
+
+Binary Search Tree (BST) –
+BST is a special type of binary tree in which left child of a node has value less than the parent and right child has value greater than 
+parent. Consider the left skewed BST
+3 - 2 - 1
+Searching: For searching element 1, we have to traverse all elements (in order 3, 2, 1). Therefore, searching in binary search tree has worst 
+case complexity of O(n). In general, time complexity is O(h) where h is height of BST.
+Insertion: For inserting element 0, it must be inserted as left child of 1. Therefore, we need to traverse all elements (in order 3, 2, 1) to 
+insert 0 which has worst case complexity of O(n). In general, time complexity is O(h).
+Deletion: For deletion of element 1, we have to traverse all elements to find 1 (in order 3, 2, 1). Therefore, deletion in binary tree has 
+worst case complexity of O(n). In general, time complexity is O(h).
+
+
+AVL/ Height Balanced Tree –
+AVL tree is binary search tree with additional property that difference between height of left sub-tree and right sub-tree of any node can’t 
+be more than 1. For example, BST shown in 3 - 2 - 1 is not AVL as difference between left sub-tree and right sub-tree of node 3 is 2. 
+			3
+		2
+	1
+However, BST shown in below Figure is AVL tree.
+			5
+		4		7
+	1				9
+Searching: For searching element 1, we have to traverse elements (in order 5, 4, 1) = 3 = log2n. Therefore, searching in AVL tree has worst 
+case complexity of O(log2n).
+Insertion: For inserting element 12, it must be inserted as right child of 9. Therefore, we need to traverse elements (in order 5, 7, 9) to 
+insert 12 which has worst case complexity of O(log2n).
+Deletion: For deletion of element 9, we have to traverse elements to find 9 (in order 5, 7, 9). Therefore, deletion in binary tree has worst 
+case complexity of O(log2n).
+
+
+
+inorder
+// Recursive function to perform in-order traversal of the tree
+public static void inorder(TreeNode root)
+{
+	// return if the current node is empty
+	if (root == null) {
+		return;
+	}
+
+	// Traverse the left subtree
+	inorder(root.left);
+
+	// Display the data part of the root (or current node)
+	System.out.print(root.data + " ");
+
+	// Traverse the right subtree
+	inorder(root.right);
+}
+
+
+// Iterative function to perform in-order traversal of the tree
+public static void inorderIterative(TreeNode root)
+{
+	// create an empty stack
+	Stack<TreeNode> stack = new Stack();
+
+	// start from root node (set current node to root node)
+	TreeNode curr = root;
+
+	// if current node is null and stack is also empty, we're done
+	while (!stack.empty() || curr != null)
+	{
+		// if current node is not null, push it to the stack (defer it)
+		// and move to its left child
+		if (curr != null)
+		{
+			stack.push(curr);
+			curr = curr.left;
+		}
+		else
+		{
+			// else if current node is null, we pop an element from stack,
+			// print it and finally set current node to its right child
+			curr = stack.pop();
+			System.out.print(curr.data + " ");
+
+			curr = curr.right;
+		}
+	}
+}
+
+
+
+
+preorder
+// Recursive function to perform pre-order traversal of the tree
+public static void preorder(TreeNode root)
+{
+	// return if the current node is empty
+	if (root == null) {
+		return;
+	}
+
+	// Display the data part of the root (or current node)
+	System.out.print(root.data + " ");
+
+	// Traverse the left subtree
+	preorder(root.left);
+
+	// Traverse the right subtree
+	preorder(root.right);
+}
+
+
+// Iterative function to perform pre-order traversal of the tree
+public static void preorderIterative(TreeNode root)
+{
+	// return if tree is empty
+	if (root == null) {
+		return;
+	}
+
+	// create an empty stack and push root node
+	Stack<TreeNode> stack = new Stack();
+	stack.push(root);
+
+	// run till stack is not empty
+	while (!stack.empty())
+	{
+		// pop a node from the stack and print it
+		TreeNode curr = stack.pop();
+
+		System.out.print(curr.data + " ");
+
+		// push right child of popped node to the stack
+		if (curr.right != null) {
+			stack.push(curr.right);
+		}
+
+		// push left child of popped node to the stack
+		if (curr.left != null) {
+			stack.push(curr.left);
+		}
+
+		// important note - right child is pushed first so that left child
+		// is processed first (FIFO order)
+	}
+}
+
+
+
+
+
+
+postorder
+// Recursive function to perform post-order traversal of the tree
+public static void postorder(TreeNode root)
+{
+	// return if the current node is empty
+	if (root == null) {
+		return;
+	}
+
+	// Traverse the left subtree
+	postorder(root.left);
+
+	// Traverse the right subtree
+	postorder(root.right);
+
+	// Display the data part of the root (or current node)
+	System.out.print(root.data + " ");
+}
+
+
+
+// Iterative function to perform post-order traversal of the tree
+public static void postorderIterative(TreeNode root)
+{
+	// create an empty stack and push root node
+	Stack<TreeNode> stack = new Stack();
+	stack.push(root);
+
+	// create another stack to store post-order traversal
+	Stack<Integer> out = new Stack();
+
+	// run till stack is not empty
+	while (!stack.empty())
+	{
+		// we pop a node from the stack and push the data to output stack
+		TreeNode curr = stack.pop();
+		out.push(curr.data);
+
+		// push left and right child of popped node to the stack
+		if (curr.left != null) {
+			stack.push(curr.left);
+		}
+
+		if (curr.right != null) {
+			stack.push(curr.right);
+		}
+	}
+
+	// print post-order traversal
+	while (!out.empty()) {
+		System.out.print(out.pop() + " ");
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+level order
+public static void levelOrderTraversal(Node root)
+	{
+		// create an empty queue and enqueue root node
+		Queue<Node> queue = new ArrayDeque<>();
+		queue.add(root);
+
+		// pointer to store current node
+		Node curr;
+
+		// run till queue is not empty
+		while (!queue.isEmpty())
+		{
+			// process each node in queue and enqueue their
+			// non-empty left and right child to queue
+			curr = queue.poll();
+
+			System.out.print(curr.key + " ");
+
+			if (curr.left != null) {
+				queue.add(curr.left);
+			}
+
+			if (curr.right != null) {
+				queue.add(curr.right);
+			}
+		}
+	}
+	
+	
+
+A Tree is typically traversed in two ways:
+
+Breadth First Traversal (Or Level Order Traversal)
+
+Depth First Traversals
+Inorder Traversal (Left-Root-Right)
+Preorder Traversal (Root-Left-Right)
+Postorder Traversal (Left-Right-Root)
+
+All four traversals require O(n) time as they visit every node exactly once.
+
+There is difference in terms of extra space required.
+
+Extra Space required for Level Order Traversal is O(w) where w is maximum width of Binary Tree. In level order traversal, queue one by one 
+stores nodes of different level.
+Extra Space required for Depth First Traversals is O(h) where h is maximum height of Binary Tree. In Depth First Traversals, stack (or 
+function call stack) stores all ancestors of a node.
+
+Maximum Width of a Binary Tree at depth (or height) h can be 2h where h starts from 0. So the maximum number of nodes can be at the last 
+level. And worst case occurs when Binary Tree is a perfect Binary Tree with numbers of nodes like 1, 3, 7, 15, …etc. In worst case, value of 
+2h is Ceil(n/2).
+
+Height for a Balanced Binary Tree is O(Log n). Worst case occurs for skewed tree and worst case height becomes O(n).
+
+So in worst case extra space required is O(n) for both. But worst cases occur for different types of trees.
+
+It is evident from above points that extra space required for Level order traversal is likely to be more when tree is more balanced and extra 
+space for Depth First Traversal is likely to be more when tree is less balanced.
+
+
+How to Pick One?
+
+Extra Space can be one factor (Explained above)
+Depth First Traversals are typically recursive and recursive code requires function call overheads.
+The most important points is, BFS starts visiting nodes from root while DFS starts visiting nodes from leaves. So if our problem is to search 
+something that is more likely to closer to root, we would prefer BFS. And if the target node is close to a leaf, we would prefer DFS.
+
+
+
+
+Insert a node: Level Order BFS
+The idea is to do iterative level order traversal of the given tree using queue. If we find a node whose left child is empty, we make new key 
+as left child of the node. Else if we find a node whose right child is empty, we make new key as right child. We keep traversing the tree 
+until we find a node whose either left or right is empty.
+
+Deletion in a Binary Tree
+Given a binary tree, delete a node from it by making sure that tree shrinks from the bottom (i.e. the deleted node is replaced by bottom most 
+and rightmost node). This different from BST deletion. Here we do not have any order among elements, so we replace with last element.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,14 @@
+https://www.journaldev.com/2856/java-jvm-memory-model-memory-management-in-java
+http://javaeesupportpatterns.blogspot.com/2013/02/java-8-from-permgen-to-metaspace.html
+https://stackoverflow.com/questions/18339707/permgen-elimination-in-jdk-8/22509753#22509753
+http://java-latte.blogspot.com/2014/03/metaspace-in-java-8.html
+http://java-latte.blogspot.com/2013/08/garbage-collection-in-java.html
+
+
+
+
+
+classloaders
+http://java-latte.blogspot.com/2013/09/concept-of-class-loader-in-java.html
+
+

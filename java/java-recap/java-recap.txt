@@ -1,0 +1,110 @@
+
+
+Part 2 Collections
+
+1. List implementations and working of each
+ArrayList
+internally implemented using array - transient Object[] elementData with default initial capacity of 10.
+trimToSize() method can be used to free up extra capacity memory
+ensureCapacity(int cap) method can be used to ensure that sufficent memory occupied to store elements
+grow(int cap) method can be used to increase capacity 
+ensureCapacity and grow internally uses Arrays.copyOf(arr1, arr2)
+remove() method uses System.arraycopy()
+iterator or listIterator are fail fast
+index based operation - add, get, put and remove are contant time operation O(1)
+generic operation like add, addAll, remove can be amortized contant time O(1) operation based on array resizing needs 
+searching and remove can be linear operation O(n)
+better used for fixed number of elements or fast random access based operation based on index better for more read than add delete operation
+choose this over LinkedList if doing more fast ietration but not likely doing a lot of insertion & deletion
+
+
+LinkedList
+uses Doubly-linked list implementation, uses Node with prev next and value.
+can act as Queue with first last addFirst addLast removeFirst removeLast getFirst getLast, 
+implements Deque poll peek offer pollFirst pollLast peekFirst peekLast offerFirst offerLast, 
+stack behaviour - push, pop
+ietrator and listIterator are fail fast to find any structural modification while iteration was on going
+useful for fast insertion or deletion
+get search or remove is linear operation O(n)
+insert and iterator.remove is contant time operation O(1)
+
+
+
+Deque - A linear collection that supports element insertion and removal at both ends - is usually pronounced "deck"
+Deques can also be used as LIFO (Last-In-First-Out) stacks.
+
+
+
+
+
+
+
+3. Map implementations and internal working
+HashMap
+
+This implementation provides constant-time performance for the basic operations, assuming the hash function disperses the elements properly 
+among the buckets.
+Iteration over collection views requires time proportional to the "capacity" of the instance (the number of buckets) plus its size (the number
+of key-value mappings).  Thus, it's very important not to set the initial capacity too high (or the load factor too low) if iteration 
+performance is important.
+capacity is number of buckets
+load factor determines the extends to which bucket is full
+An instance of HashMap has two parameters that affect its performance: initial capacity and load factor.  
+The capacity is the number of buckets in the hash table, and the initial capacity is simply the capacity at the time the hash table is 
+created.  The load factor is a measure of how full the hash table is allowed to get before its capacity is automatically increased.  
+When the number of entries in the hash table exceeds the product of the load factor and the current capacity, the hash table is 
+rehashed (that is, internal data structures are rebuilt) so that the hash table has approximately twice the number of buckets.
+default initial capcity is 16 and load factor is 0.75
+The bin count threshold for using a tree rather than list for a bin. Bins are converted to trees when adding an element to a
+bin with at least this many nodes.
+TREEIFY_THRESHOLD = 8
+The bin count threshold for untreeifying a (split) bin during a resize operation. Should be less than TREEIFY_THRESHOLD, and at
+ most 6 to mesh with shrinkage detection under removal.
+UNTREEIFY_THRESHOLD = 6
+
+Tree node has int hash, K key, V value and Node next reference to form a tree
+
+
+
+
+
+LinkedHashMap
+
+
+
+
+
+
+TreeMap
+
+
+
+
+
+
+
+
+
+4. Iterator - fail fast against fail safe differences and implementation
+fail fast iterator v/s fail safe iterator
+protected transient int modCount = 0;
+fail fast iterator raises a ConcurrentModificationException while collection is being iterated and at same sime the underlying collection 
+is structurally modified (increase or decrease in number of elements).
+fail fast iterator is able to do it with help modCount which tracks the structurally modified counts.
+fail fast behaviour is not guaranteed and it on best effort basis in presence of unsynchronized concurrent modification 
+They use original collection to traverse over the elements of the collection.
+These iterators don’t require extra memory.
+if required to remove an elelent use iterator.remove which will not throw ConcurrentModificationException
+Fail-Safe iterators don’t throw any exceptions if a collection is structurally modified while iterating over it. 
+Any structural modification done to the iterator affects the copied collection, not original collection. 
+So, original collection remains structurally unchanged.
+This is because, they operate on the clone of the collection, not on the original collection and 
+that’s why they are called fail-safe iterators. 
+Iterator on CopyOnWriteArrayList, ConcurrentHashMap classes are examples of fail-safe Iterator.
+These iterators require extra memory for cloning of collection
+
+
+
+
+
+
