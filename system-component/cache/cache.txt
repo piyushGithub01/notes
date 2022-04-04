@@ -1,0 +1,38 @@
+
+
+caching at system component level
+1. client side: client side OS, client side browser, cookies
+2. content Delivery Network - CDN 
+3. Web Server level - Reverse proxies and caches such as Varnish can serve static and dynamic content directly. Web servers can also cache 
+requests, returning responses without having to contact application servers.
+4. Database caching - has some default caching but can be optimized further for specific use cases
+5. Application caching - using caching components redis Memcache keeping data in RAM
+
+
+caching at domain level -
+1. query level - calculate hash of query and return result accordingly
+2. object level - Have your application assemble the dataset from the database into a class instance or a data structure(s), cache Have your 
+application assemble the dataset from the database into a class instance or a data structure(s) or Fully-rendered HTML
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
